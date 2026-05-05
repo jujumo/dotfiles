@@ -1,0 +1,5 @@
+#!/bin/bash
+sed \
+    's/^ZSH_THEME=.*/ZSH_THEME="jumo"/' \
+    | sed \
+    's/^plugins=(.*/plugins=(cp gitfast common-aliases rsync debian sudo screen docker)/'

@@ -1,0 +1,42 @@
+= Dotfiles
+:toc:
+:toc-placement: preamble
+
+Personal dotfiles managed with https://www.chezmoi.io/[chezmoi].
+
+== What gets installed
+
+* *zsh* and common CLI tools (`cp`, `nano`, `screen`, `rsync`)
+* *Oh My Zsh* with the `jumo` theme and a curated plugin set
+* *Plugins*: `cp`, `gitfast`, `common-aliases`, `rsync`, `debian`, `sudo`, `screen`, `docker`
+
+== How it works
+
+chezmoi applies the dotfiles in the following order:
+
+[cols="1m,3"]
+|===
+|File |Role
+
+|run_once_before_install-1-packages.sh
+|Installs zsh and base packages via `apt`.
+
+|run_once_before_install-2-ohmyzsh.sh
+|Installs Oh My Zsh (unattended). Creates the initial `.zshrc` from the Oh My Zsh template.
+
+|modify_dot_zshrc
+|Patches `.zshrc` in place: sets `ZSH_THEME="jumo"` and the plugin list. Runs after the `before_` scripts so Oh My Zsh is already set up.
+
+|run_once_install-3-theme.sh
+|Downloads the `jumo` theme file into `~/.oh-my-zsh/custom/themes/`.
+|===
+
+The `run_once_before_` prefix ensures packages and Oh My Zsh are installed *before* chezmoi touches any file. The `modify_` prefix means chezmoi patches the existing `.zshrc` rather than overwriting it, keeping it resilient to future Oh My Zsh template changes.
+
+== Usage
+
+[source,shell]
+----
+chezmoi init /path/to/dotfiles
+chezmoi apply
+----
