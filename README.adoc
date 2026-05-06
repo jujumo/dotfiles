@@ -37,6 +37,6 @@ The `run_once_before_` prefix ensures packages and Oh My Zsh are installed *befo
 
 [source,shell]
 ----
-chezmoi init /path/to/dotfiles
+chezmoi init git@github.com:jujumo/dotfiles.git
 chezmoi apply
 ----
