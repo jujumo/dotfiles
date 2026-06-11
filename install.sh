@@ -17,9 +17,9 @@ else
   SUDO="sudo"
 fi
 
-echo "==> Installing base packages (zsh, nano, screen, git, curl)"
+echo "==> Installing base packages (curl, git, openssh-client, zsh, nano, screen)"
 $SUDO apt update
-$SUDO apt install -y zsh nano screen git curl
+$SUDO apt install -y ca-certificates curl git openssh-client zsh nano screen
 
 echo "==> Installing Oh My Zsh"
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
