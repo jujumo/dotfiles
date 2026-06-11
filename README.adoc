@@ -4,39 +4,58 @@
 
 Personal dotfiles managed with https://www.chezmoi.io/[chezmoi].
 
+chezmoi only tracks the dotfiles themselves. All installation (packages, Oh My Zsh, the `jumo` theme, chezmoi itself) lives in a standalone `install.sh` bootstrap script.
+
+== Install
+
+One line, on a fresh machine:
+
+[source,shell]
+----
+sh -c "$(curl -fsLS https://raw.githubusercontent.com/jujumo/dotfiles/main/install.sh)"
+----
+
+This installs base packages, Oh My Zsh and chezmoi, then runs `chezmoi init --apply` to lay down the dotfiles (including the `jumo` theme).
+
+To point at a different source repo, set `DOTFILES_REPO`:
+
+[source,shell]
+----
+DOTFILES_REPO=git@github.com:you/dotfiles.git \
+  sh -c "$(curl -fsLS https://raw.githubusercontent.com/jujumo/dotfiles/main/install.sh)"
+----
+
 == What gets installed
 
-* *zsh* and common CLI tools (`cp`, `nano`, `screen`, `rsync`)
-* *Oh My Zsh* with the `jumo` theme and a curated plugin set
-* *Plugins*: `cp`, `gitfast`, `common-aliases`, `rsync`, `debian`, `sudo`, `screen`, `docker`
+The `install.sh` script sets up:
 
-== How it works
+* *zsh* and common CLI tools (`nano`, `screen`, `git`, `curl`)
+* *Oh My Zsh* (unattended, without generating its own `.zshrc` — chezmoi owns that)
+* *chezmoi*, into `~/.local/bin`
 
-chezmoi applies the dotfiles in the following order:
+The `jumo` theme is no longer downloaded here — chezmoi ships it (see below).
+
+== What chezmoi manages
 
 [cols="1m,3"]
 |===
 |File |Role
 
-|run_once_before_install-1-packages.sh
-|Installs zsh and base packages via `apt`.
+|dot_zshrc
+|`~/.zshrc` — sets `ZSH_THEME="jumo"` and the plugin list (`cp gitfast common-aliases rsync debian sudo screen docker`), then sources Oh My Zsh.
 
-|run_once_before_install-2-ohmyzsh.sh
-|Installs Oh My Zsh (unattended). Creates the initial `.zshrc` from the Oh My Zsh template.
-
-|modify_dot_zshrc
-|Patches `.zshrc` in place: sets `ZSH_THEME="jumo"` and the plugin list. Runs after the `before_` scripts so Oh My Zsh is already set up.
-
-|run_once_install-3-theme.sh
-|Downloads the `jumo` theme file into `~/.oh-my-zsh/custom/themes/`.
+|dot_oh-my-zsh/custom/themes/jumo.zsh-theme
+|`~/.oh-my-zsh/custom/themes/jumo.zsh-theme` — the `jumo` prompt theme, vendored here so the setup is self-contained.
 |===
 
-The `run_once_before_` prefix ensures packages and Oh My Zsh are installed *before* chezmoi touches any file. The `modify_` prefix means chezmoi patches the existing `.zshrc` rather than overwriting it, keeping it resilient to future Oh My Zsh template changes.
+Files not meant for `$HOME` (`README.adoc`, `CLAUDE.md`, `install.sh`) are excluded via `.chezmoiignore`.
 
-== Usage
+== Day-to-day usage
 
 [source,shell]
 ----
-chezmoi init git@github.com:jujumo/dotfiles.git
-chezmoi apply
+chezmoi apply              # apply changes to $HOME
+chezmoi diff               # preview changes
+chezmoi add ~/.someconfig  # track a new file
+chezmoi edit ~/.zshrc --apply
 ----
