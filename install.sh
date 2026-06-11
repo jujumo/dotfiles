@@ -8,7 +8,7 @@
 # the dotfiles. Override the source repo with DOTFILES_REPO=... if needed.
 set -e
 
-DOTFILES_REPO="${DOTFILES_REPO:-git@github.com:jujumo/dotfiles.git}"
+DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/jujumo/dotfiles.git}"
 
 # Run privileged commands with sudo unless we are already root.
 if [ "$(id -u)" -eq 0 ]; then
