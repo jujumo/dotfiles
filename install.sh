@@ -16,6 +16,11 @@ DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/jujumo/dotfiles.git}"
 # no other way. Mirrors Oh My Zsh's --unattended flag.
 UNATTENDED="${UNATTENDED:-}"
 
+# Where to fetch the SSH login keys to authorize. Empty by default, so no keys
+# are authorized unless you opt in, e.g. with your GitHub account's public keys:
+#   SSH_KEYS_URL=https://github.com/jujumo.keys
+SSH_KEYS_URL="${SSH_KEYS_URL:-}"
+
 # Run privileged commands with sudo unless we are already root.
 if [ "$(id -u)" -eq 0 ]; then
   SUDO=""
@@ -43,6 +48,23 @@ command -v "$CHEZMOI" >/dev/null 2>&1 || CHEZMOI="chezmoi"
 
 echo "==> Applying dotfiles with chezmoi"
 "$CHEZMOI" init --apply "$DOTFILES_REPO"
+
+# Authorize SSH login keys. Append-only and idempotent: each key is added just
+# once and existing entries (e.g. provisioned by the host) are left untouched,
+# so this never clobbers an existing authorized_keys like a chezmoi-managed file
+# would. sshd's StrictModes requires 0700 on ~/.ssh and 0600 on the file.
+if [ -n "$SSH_KEYS_URL" ]; then
+  echo "==> Authorizing SSH login keys from $SSH_KEYS_URL"
+  mkdir -p "$HOME/.ssh"
+  chmod 700 "$HOME/.ssh"
+  AUTH="$HOME/.ssh/authorized_keys"
+  touch "$AUTH"
+  chmod 600 "$AUTH"
+  curl -fsSL "$SSH_KEYS_URL" | while IFS= read -r key; do
+    [ -n "$key" ] || continue
+    grep -qxF "$key" "$AUTH" || printf '%s\n' "$key" >> "$AUTH"
+  done
+fi
 
 # Change the login shell to zsh. chsh writes to /etc/passwd, so it needs to be
 # root: as root it never prompts; via passwordless sudo it never prompts; with
