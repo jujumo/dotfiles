@@ -25,6 +25,20 @@ DOTFILES_REPO=git@github.com:you/dotfiles.git \
   sh -c "$(curl -fsLS https://raw.githubusercontent.com/jujumo/dotfiles/main/install.sh)"
 ----
 
+=== Authorizing SSH login keys
+
+Set `SSH_KEYS_URL` to also authorize SSH keys for logging *into* this machine. The installer fetches the public keys from that URL and appends them to `~/.ssh/authorized_keys` (append-only and idempotent — existing entries are left untouched), and installs `openssh-server` so the host is reachable. Unset by default, so nothing is authorized unless you opt in.
+
+The handiest source is your GitHub account's public keys:
+
+[source,shell]
+----
+SSH_KEYS_URL=https://github.com/jujumo.keys \
+  sh -c "$(curl -fsLS https://raw.githubusercontent.com/jujumo/dotfiles/main/install.sh)"
+----
+
+Any URL `curl` can read works (including a local `file://` path). Only *public* keys are ever handled — no private key material is involved.
+
 == What gets installed
 
 The `install.sh` script sets up:
@@ -32,6 +46,7 @@ The `install.sh` script sets up:
 * *zsh* and common CLI tools (`nano`, `screen`, `git`, `curl`)
 * *Oh My Zsh* (unattended, without generating its own `.zshrc` — chezmoi owns that)
 * *chezmoi*, into `~/.local/bin`
+* *openssh-server* — only when `SSH_KEYS_URL` is set (see above)
 
 The `jumo` theme is no longer downloaded here — chezmoi ships it (see below).
 
