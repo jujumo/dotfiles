@@ -55,6 +55,10 @@ echo "==> Applying dotfiles with chezmoi"
 # would. sshd's StrictModes requires 0700 on ~/.ssh and 0600 on the file.
 if [ -n "$SSH_KEYS_URL" ]; then
   echo "==> Authorizing SSH login keys from $SSH_KEYS_URL"
+  # Authorizing inbound keys implies wanting an SSH server to log into. The
+  # default install (no SSH_KEYS_URL) stays client-only. The postinst generates
+  # host keys; starting sshd is left to the host's init (or the test harness).
+  $SUDO apt install -y openssh-server
   mkdir -p "$HOME/.ssh"
   chmod 700 "$HOME/.ssh"
   AUTH="$HOME/.ssh/authorized_keys"
