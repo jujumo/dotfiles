@@ -43,7 +43,7 @@ Any URL `curl` can read works (including a local `file://` path). Only *public* 
 
 The `install.sh` script sets up:
 
-* *zsh* and common CLI tools (`nano`, `screen`, `git`, `curl`)
+* *zsh* and common CLI tools (`nano`, `screen`, `tmux`, `git`, `curl`)
 * *Oh My Zsh* (unattended, without generating its own `.zshrc` — chezmoi owns that)
 * *chezmoi*, into `~/.local/bin`
 * *openssh-server* — only when `SSH_KEYS_URL` is set (see above)
@@ -59,11 +59,39 @@ The `jumo` theme is no longer downloaded here — chezmoi ships it (see below).
 |dot_zshrc
 |`~/.zshrc` — sets `ZSH_THEME="jumo"` and the plugin list (`cp gitfast common-aliases rsync debian sudo screen docker`), then sources Oh My Zsh.
 
+|dot_tmux.conf
+|`~/.tmux.conf` — `C-a` prefix, mouse and clipboard on, `tmux-256color` + RGB terminal, `e` / `o` split bindings (Terminator style), zsh as the pane shell.
+
 |dot_oh-my-zsh/custom/themes/jumo.zsh-theme
 |`~/.oh-my-zsh/custom/themes/jumo.zsh-theme` — the `jumo` prompt theme, vendored here so the setup is self-contained.
 |===
 
 Files not meant for `$HOME` (`README.adoc`, `CLAUDE.md`, `install.sh`) are excluded via `.chezmoiignore`.
+
+== Update
+
+`install.sh` is idempotent and is also the update command: re-run it and it pulls the latest commits of the source repo and applies them (steps already done — Oh My Zsh, chezmoi — are skipped).
+
+[source,shell]
+----
+~/.local/share/chezmoi/install.sh
+----
+
+Use the `curl` one-liner instead if `install.sh` itself changed (a new package, for example), since the local copy is only refreshed by the *previous* update:
+
+[source,shell]
+----
+sh -c "$(curl -fsLS https://raw.githubusercontent.com/jujumo/dotfiles/main/install.sh)"
+----
+
+For the dotfiles only, without going through the package step:
+
+[source,shell]
+----
+chezmoi update             # git pull + apply
+----
+
+NOTE: `chezmoi update` rebases the source directory. If you have local commits there that are not pushed, the pull can stop on a conflict — `install.sh` then exits with an error rather than applying a stale state.
 
 == Day-to-day usage
 
