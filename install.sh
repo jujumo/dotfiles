@@ -40,14 +40,35 @@ if [ ! -d "$HOME/.oh-my-zsh" ]; then
 fi
 
 echo "==> Installing chezmoi"
-if ! command -v chezmoi >/dev/null 2>&1; then
+# Look in ~/.local/bin first: that is where we install it, and it is typically
+# not on PATH yet in the shell running this script, so relying on `command -v
+# chezmoi` alone would re-download it on every run.
+if [ -x "$HOME/.local/bin/chezmoi" ]; then
+  CHEZMOI="$HOME/.local/bin/chezmoi"
+elif command -v chezmoi >/dev/null 2>&1; then
+  CHEZMOI="chezmoi"
+else
   sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
+  CHEZMOI="$HOME/.local/bin/chezmoi"
 fi
-CHEZMOI="$HOME/.local/bin/chezmoi"
-command -v "$CHEZMOI" >/dev/null 2>&1 || CHEZMOI="chezmoi"
 
 echo "==> Applying dotfiles with chezmoi"
-"$CHEZMOI" init --apply "$DOTFILES_REPO"
+# `chezmoi init` only clones when the source directory is not already a git
+# repo, and it never pulls: on a re-run it would silently apply the stale local
+# source state and ignore a changed DOTFILES_REPO. So init only the first time,
+# and afterwards re-point the remote (in case DOTFILES_REPO changed) and let
+# `chezmoi update` pull before applying.
+SOURCE_DIR="$("$CHEZMOI" source-path 2>/dev/null || echo "$HOME/.local/share/chezmoi")"
+if [ -d "$SOURCE_DIR/.git" ]; then
+  current_url="$("$CHEZMOI" git -- remote get-url origin 2>/dev/null || true)"
+  if [ "$current_url" != "$DOTFILES_REPO" ]; then
+    "$CHEZMOI" git -- remote set-url origin "$DOTFILES_REPO" 2>/dev/null \
+      || "$CHEZMOI" git -- remote add origin "$DOTFILES_REPO"
+  fi
+  "$CHEZMOI" update
+else
+  "$CHEZMOI" init --apply "$DOTFILES_REPO"
+fi
 
 # Authorize SSH login keys. Append-only and idempotent: each key is added just
 # once and existing entries (e.g. provisioned by the host) are left untouched,
