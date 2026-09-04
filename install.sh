@@ -30,7 +30,7 @@ fi
 
 echo "==> Installing base packages (curl, git, openssh-client, zsh, nano, screen, tmux)"
 $SUDO apt update
-$SUDO apt install -y ca-certificates curl git openssh-client zsh nano screen tmux
+$SUDO apt install -y ca-certificates curl git openssh-client zsh nano screen tmux btop micro
 
 echo "==> Installing Oh My Zsh"
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
