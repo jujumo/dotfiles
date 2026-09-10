@@ -264,7 +264,7 @@ web_client {
 default_shell "zsh"                  // not $SHELL
 show_startup_tips false              // we are past that
 nested_session_handling "descend"    // show both nested and host
-scrollback_editor "/usr/bin/micro"   // micro
+scrollback_editor "/usr/bin/nano"   // nano
 session_serialization false          // no snapshot/resurrection
-pane_frames false                    // dont need pan titles
-on_force_close "quit"                // avoid dandling sessions
+pane_frames false                    // dont need pan decoration
+on_force_close "detach"              // keep sessions alive
