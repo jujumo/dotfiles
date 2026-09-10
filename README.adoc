@@ -43,28 +43,12 @@ Any URL `curl` can read works (including a local `file://` path). Only *public* 
 
 The `install.sh` script sets up:
 
-* *zsh* and common CLI tools (`nano`, `screen`, `tmux`, `git`, `curl`)
-* *Oh My Zsh* (unattended, without generating its own `.zshrc` — chezmoi owns that)
+* common CLI tools (`nano`, `git`, `curl`, ...)
+* *zsh* and *Oh My Zsh* (unattended, without generating its own `.zshrc` — chezmoi owns that)
 * *chezmoi*, into `~/.local/bin`
 * *openssh-server* — only when `SSH_KEYS_URL` is set (see above)
-
-The `jumo` theme is no longer downloaded here — chezmoi ships it (see below).
-
-== What chezmoi manages
-
-[cols="1m,3"]
-|===
-|File |Role
-
-|dot_zshrc
-|`~/.zshrc` — sets `ZSH_THEME="jumo"` and the plugin list (`cp gitfast common-aliases rsync debian sudo screen docker`), then sources Oh My Zsh.
-
-|dot_tmux.conf
-|`~/.tmux.conf` — `C-a` prefix, mouse and clipboard on, `tmux-256color` + RGB terminal, `e` / `o` split bindings (Terminator style), zsh as the pane shell.
-
-|dot_oh-my-zsh/custom/themes/jumo.zsh-theme
-|`~/.oh-my-zsh/custom/themes/jumo.zsh-theme` — the `jumo` prompt theme, vendored here so the setup is self-contained.
-|===
+* *zellij*, into `~/.local/bin`
+* *appman*, into `~/.local/bin`
 
 Files not meant for `$HOME` (`README.adoc`, `CLAUDE.md`, `install.sh`) are excluded via `.chezmoiignore`.
 
