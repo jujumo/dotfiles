@@ -1,9 +1,29 @@
 Host *
     AddKeysToAgent yes
 
-Host nas-jumo
-    HostName nas-jumo
-    Port 35123
-    User jumo
-    RequestTTY yes
-    RemoteCommand /usr/local/bin/zsh -l
+Host c007 c008 d005 d032
+  User around
+
+Host laserpi
+  User le99006
+  Hostname 10.57.9.3
+  IdentityFile /home/jmorat/.ssh/id_rsa_laserpi
+
+Host chaos-* rock water loca-* juno-* pmogpu hobbs-*
+  HostName %h.int.europe.naverlabs.com
+  ForwardX11 yes
+  ForwardX11Trusted yes
+#  RequestTTY force
+  IdentityFile /home/jmorat/.ssh/id_rsa
+
+Host frontend-1 frontend-2 wood sensei
+  HostName %h.infra.europe.naverlabs.com
+  ForwardX11 yes
+  ForwardX11Trusted yes
+  IdentityFile /home/jmorat/.ssh/id_rsa
+
+Host frontend-nle001 frontend-nle002 debug-001 debug-002
+  HostName %h.kr.europe.naverlabs.com
+  ForwardX11 yes
+  ForwardX11Trusted yes
+  IdentityFile /home/jmorat/.ssh/id_rsa
