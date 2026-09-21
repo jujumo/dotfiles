@@ -76,6 +76,19 @@ chezmoi update             # git pull + apply
 
 NOTE: `chezmoi update` rebases the source directory. If you have local commits there that are not pushed, the pull can stop on a conflict — nothing is applied until you resolve it.
 
+== Synchronize from github.com
+
+When the public repo changes, the synchronization procedure is:
+
+----
+git switch main
+git fetch github
+git merge --ff-only github/main
+git switch work
+git rebase main
+git push --force-with-lease naver work
+----
+
 == Day-to-day usage
 
 [source,shell]
