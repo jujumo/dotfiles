@@ -1,0 +1,52 @@
+# ~/.bash_profile
+# is only sourced by bash when started in interactive login mode.
+# That is typically only when you login at the console (Ctrl+Alt+F1..F6), or connecting via ssh.
+#  So ~/.bash_profile is not sourced at all when you log in graphically.
+
+# --- bash -> zsh trampoline -------------------------------------------------
+# Why: the login shell in the directory (passwd comes from sss, see
+# /etc/nsswitch.conf) is /bin/bash and the cpf_shell-jm.sh wrapper hard-codes
+# bash as well. Neither is ours to change -- only IT can edit loginShell -- so
+# every ssh/console login necessarily starts bash. Replacing that bash with zsh
+# from here is the user-space way to still land in zsh.
+#
+# It lives in .bash_profile, not .bashrc, because .bash_profile is read only by
+# interactive *login* shells: once per session, at the entry point. .bashrc is
+# read by every interactive bash, so an exec there would also fire for any bash
+# started from inside zsh.
+#
+# Mechanism:
+#   [[ $- == *i* ]]   $- holds the shell option flags; 'i' means interactive.
+#                     Keeps scp/sftp/rsync/`ssh host cmd` in a plain silent
+#                     shell -- an interactive zsh would inject prompt/theme
+#                     escapes into the data stream and corrupt the transfer.
+#   _zsh=$(command -v zsh)
+#                     An assignment exits with the status of its command
+#                     substitution, so this tests for zsh and captures its path
+#                     at once. No zsh -> condition false -> fall through to bash
+#                     rather than exec'ing nothing and dropping the login.
+#   exec              Replaces this process image instead of forking, so no
+#                     parent bash lingers (no double exit) and the PID keeps its
+#                     tty, job control and signal wiring.
+#   -l                Makes the new zsh a login shell, so it reads .zshenv,
+#                     .zprofile, .zshrc and .zlogin.
+#
+# $SHELL is exported by ~/.zshrc, so it is not set here (single source of truth).
+if [[ $- == *i* ]] && _zsh=$(command -v zsh); then
+    exec "$_zsh" -l
+fi
+unset _zsh   # only reached when the jump did not happen
+# --- end trampoline ---------------------------------------------------------
+
+# should be super-simple and just load .profile and .bashrc (in that order)
+# called from bashrc
+
+# source .profile  if it exists (where path is updated)
+if [ -f "$HOME/.profile" ]; then
+   . "$HOME/.profile"
+fi
+
+# source .bashrc  if it exists
+if [ -f "$HOME/.bashrc" ]; then
+   . "$HOME/.bashrc"
+fi
