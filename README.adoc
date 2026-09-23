@@ -81,12 +81,14 @@ NOTE: `chezmoi update` rebases the source directory. If you have local commits t
 When the public repo changes, the synchronization procedure is:
 
 ----
+# retrieve upstream modifications from main on github.
 git switch main
 git fetch github
 git merge --ff-only github/main
+# apply modifications to work branch
 git switch work
-git rebase main
-git push --force-with-lease naver work
+git merge main
+git push naver work
 ----
 
 == Day-to-day usage
