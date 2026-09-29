@@ -91,6 +91,11 @@ git merge main
 git push naver work
 ----
 
+or calls: 
+----
+./pull_upstream.sh
+----
+
 == Day-to-day usage
 
 [source,shell]
