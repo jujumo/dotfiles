@@ -275,3 +275,4 @@ scrollback_editor "/usr/bin/nano"
 session_serialization false
 show_startup_tips false 
 nested_session_handling "descend"
+copy_clipboard "primary"
