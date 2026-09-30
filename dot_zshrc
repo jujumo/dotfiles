@@ -12,6 +12,7 @@ plugins=(
 	sudo 
 	screen 
 	docker
+        copypath copypath copybuffer
 )
 
 HIST_STAMPS="yyyy-mm-dd"
