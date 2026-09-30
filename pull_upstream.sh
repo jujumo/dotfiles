@@ -7,3 +7,4 @@ git merge --ff-only github/main
 git switch work
 git merge main --quiet --no-edit
 git push naver work
+git push naver main
