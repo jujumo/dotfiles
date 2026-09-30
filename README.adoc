@@ -76,7 +76,24 @@ chezmoi update             # git pull + apply
 
 NOTE: `chezmoi update` rebases the source directory. If you have local commits there that are not pushed, the pull can stop on a conflict — nothing is applied until you resolve it.
 
-== Synchronize from github.com
+== install specific dev tools
+
+=== slurmer
+
+TODO
+
+=== claude_tui
+
+[source,bash]
+----
+wget https://raw.githubusercontent.com/slima4/claude-tui/main/install.sh 
+conda create -n claudetui python=3.14
+CLAUDETUI_PYTHON="$HOME/miniconda3/envs/claudetui/bin/python"
+INSTALL_DIR="$HOME/Applications/claude-tui"
+./install.sh 
+----
+
+== Synchronize from jujumo
 
 When the public repo changes, the synchronization procedure is:
 
@@ -89,6 +106,7 @@ git merge --ff-only github/main
 git switch work
 git merge main
 git push naver work
+git push naver main
 ----
 
 or calls: 
