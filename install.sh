@@ -36,8 +36,8 @@ echo "==> Installing required packages (ca-certificates curl git openssh-client 
 $SUDO apt update
 $SUDO apt install -y ca-certificates curl git openssh-client zsh nano
 
-echo "==> Installing optional packages (btop, screen, micro)"
-for package in btop screen micro; do
+echo "==> Installing optional packages (btop, screen, micro, unzip)"
+for package in btop screen micro unzip; do
   $SUDO apt install -y "$package" || echo "    $package: skip"
 done
 
@@ -109,9 +109,9 @@ if [ -n "$ZSH_PATH" ] && [ "$current_shell" != "$ZSH_PATH" ]; then
   echo "==> Setting zsh as the default shell"
 
   if [ "$(id -u)" -eq 0 ]; then
-    chsh -s "$ZSH_PATH" "$(id -un)"
+    chsh -s "$ZSH_PATH" "$(id -un)" || echo "    could not change shell"
   elif sudo -n true 2>/dev/null; then
-    sudo chsh -s "$ZSH_PATH" "$(id -un)"
+    sudo chsh -s "$ZSH_PATH" "$(id -un)" || echo "    could not change shell"
   elif [ -n "$UNATTENDED" ]; then
     echo "    skipped (would need a password); run later: chsh -s $ZSH_PATH"
   else
@@ -156,6 +156,32 @@ if [ ! -x "$HOME/.local/bin/zellij" ]; then
 
     chmod +x "$HOME/.local/bin/zellij"
   } >/dev/null 2>&1 || true
+fi
+
+echo "==> Installing Yazi (optional)"
+if [ ! -x "$HOME/.local/bin/yazi" ]; then
+  (
+    case "$ARCH" in
+      x86_64)        YAZI_ARCH="x86_64" ;;
+      aarch64|arm64) YAZI_ARCH="aarch64" ;;
+      *)             exit 0 ;;
+    esac
+    [ "$OS" = "Linux" ] || exit 0
+
+    YAZI_TMP="$(mktemp -d "${TMPDIR:-/tmp}/yazi.XXXXXX")"
+    trap 'rm -rf "$YAZI_TMP"' EXIT
+    mkdir -p "$HOME/.local/bin"
+
+    curl -fsSL -o "$YAZI_TMP/yazi.zip" \
+      "https://github.com/sxyazi/yazi/releases/latest/download/yazi-${YAZI_ARCH}-unknown-linux-musl.zip"
+    # unzip may be missing (non-apt distros); python3 is a common fallback.
+    if command -v unzip >/dev/null 2>&1; then
+      unzip -q "$YAZI_TMP/yazi.zip" -d "$YAZI_TMP"
+    else
+      python3 -m zipfile -e "$YAZI_TMP/yazi.zip" "$YAZI_TMP"
+    fi
+    install -m 755 "$YAZI_TMP"/yazi-*/yazi "$YAZI_TMP"/yazi-*/ya "$HOME/.local/bin/"
+  ) >/dev/null 2>&1 || echo "    yazi: skip"
 fi
 
 echo "==> Done. Start a new shell or run: exec zsh"
