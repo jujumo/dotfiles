@@ -12,7 +12,7 @@ One line, on a fresh machine:
 
 [source,shell]
 ----
-sh -c "$(curl -fsLS https://es.naverlabs.com/julien-morat/dotfiles/-/raw/work/install.sh)"
+d=$(mktemp -d) && git clone -q -b work git@es.naverlabs.com:julien-morat/dotfiles.git "$d" && sh "$d/install.sh"
 ----
 
 This installs base packages, Oh My Zsh and chezmoi, then runs `chezmoi init --apply` to lay down the dotfiles (including the `jumo` theme).
@@ -21,8 +21,8 @@ To point at a different source repo, set `DOTFILES_REPO`:
 
 [source,shell]
 ----
-DOTFILES_REPO=git@github.com:you/dotfiles.git \
-  sh -c "$(curl -fsLS https://es.naverlabs.com/julien-morat/dotfiles/-/raw/work/install.sh)"
+d=$(mktemp -d) && git clone -q -b work git@es.naverlabs.com:julien-morat/dotfiles.git "$d" && \
+  DOTFILES_REPO=git@github.com:you/dotfiles.git sh "$d/install.sh"
 ----
 
 === Authorizing SSH login keys
@@ -33,8 +33,8 @@ The handiest source is your GitHub account's public keys:
 
 [source,shell]
 ----
-SSH_KEYS_URL=https://github.com/jujumo.keys \
-  sh -c "$(curl -fsLS https://es.naverlabs.com/julien-morat/dotfiles/-/raw/work/install.sh)"
+d=$(mktemp -d) && git clone -q -b work git@es.naverlabs.com:julien-morat/dotfiles.git "$d" && \
+  SSH_KEYS_URL=https://github.com/jujumo.keys sh "$d/install.sh"
 ----
 
 Any URL `curl` can read works (including a local `file://` path). Only *public* keys are ever handled — no private key material is involved.
@@ -61,11 +61,11 @@ Files not meant for `$HOME` (`README.adoc`, `CLAUDE.md`, `install.sh`) are exclu
 ~/.local/share/chezmoi/install.sh
 ----
 
-Use the `curl` one-liner instead if `install.sh` itself changed (a new package, for example), since the local copy is only refreshed by the *previous* update:
+Use the one-liner instead if `install.sh` itself changed (a new package, for example), since the local copy is only refreshed by the *previous* update:
 
 [source,shell]
 ----
-sh -c "$(curl -fsLS https://es.naverlabs.com/julien-morat/dotfiles/-/raw/work/install.sh)"
+d=$(mktemp -d) && git clone -q -b work git@es.naverlabs.com:julien-morat/dotfiles.git "$d" && sh "$d/install.sh"
 ----
 
 For the dotfiles only, without going through the package step:

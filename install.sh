@@ -1,8 +1,8 @@
 #!/bin/sh
 # Dotfiles bootstrap installer.
 #
-# One-liner:
-#   sh -c "$(curl -fsLS https://es.naverlabs.com/julien-morat/dotfiles/-/raw/work/install.sh)"
+# One-liner (needs an SSH key registered on es.naverlabs.com; the repo is private):
+#   d=$(mktemp -d) && git clone -q -b work git@es.naverlabs.com:julien-morat/dotfiles.git "$d" && sh "$d/install.sh"
 #
 # Installs base packages, Oh My Zsh, the jumo theme and chezmoi, then applies
 # the dotfiles. Override the source repo with DOTFILES_REPO=... if needed.
