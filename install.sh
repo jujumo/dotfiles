@@ -6,7 +6,11 @@
 #
 # Installs base packages, Oh My Zsh, the jumo theme and chezmoi, then applies
 # the dotfiles. Override the source repo with DOTFILES_REPO=... if needed.
-set -e
+#
+# Best effort: installs what permissions and prerequisites allow, skips the
+# rest. Without root or passwordless sudo, asks once whether to use sudo;
+# NO_ROOT=1 answers "no" up front (system packages are then skipped).
+# No `set -e`: best effort, a failing step is reported and the next one runs.
 
 DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/jujumo/dotfiles.git}"
 
@@ -25,68 +29,108 @@ UNATTENDED="${UNATTENDED:-}"
 #   SSH_KEYS_URL=https://github.com/jujumo.keys
 SSH_KEYS_URL="${SSH_KEYS_URL:-}"
 
-# Run privileged commands with sudo unless we are already root.
+has() { command -v "$1" >/dev/null 2>&1; }
+
+# Checks prerequisites of a step; prints what is missing otherwise.
+need() {
+  for cmd in "$@"; do
+    has "$cmd" || { echo "    skipped (missing $cmd)"; return 1; }
+  done
+}
+
+# Root decision. Not using sudo is an explicit choice (answer n or NO_ROOT=1):
+# a failed sudo (e.g. mistyped password) aborts instead of silently skipping.
+NO_ROOT="${NO_ROOT:-}"
+SUDO="sudo"
+CAN_ROOT=0
 if [ "$(id -u)" -eq 0 ]; then
   SUDO=""
-else
-  SUDO="sudo"
+  CAN_ROOT=1
+elif [ -n "$NO_ROOT" ] || ! has sudo; then
+  :
+elif sudo -n true 2>/dev/null; then
+  CAN_ROOT=1
+elif [ -z "$UNATTENDED" ] && ( : </dev/tty ) 2>/dev/null; then
+  printf 'Use sudo for system packages? [Y/n] '
+  read -r answer </dev/tty || answer=n
+  case "$answer" in
+    n|N|no) ;;
+    *) sudo -v || { echo "sudo failed; re-run and answer n (or NO_ROOT=1) to install without root."; exit 1; }
+       CAN_ROOT=1 ;;
+  esac
 fi
 
-echo "==> Installing required packages (ca-certificates curl git openssh-client zsh nano)"
-$SUDO apt update
-$SUDO apt install -y ca-certificates curl git openssh-client zsh nano
+echo "==> Installing basic packages (ca-certificates curl git openssh-client zsh nano)"
+if [ "$CAN_ROOT" = 1 ] && has apt; then
+  $SUDO apt update || true
+  for package in ca-certificates curl git openssh-client zsh nano; do
+    $SUDO apt install -y "$package" || echo "    $package: skip"
+  done
+else
+  echo "    skipped (no root or no apt)"
+fi
 
-echo "==> Installing optional packages (btop, screen, micro, unzip)"
-for package in btop screen micro unzip; do
-  $SUDO apt install -y "$package" || echo "    $package: skip"
-done
+echo "==> Installing extra packages (btop, screen, micro, unzip)"
+if [ "$CAN_ROOT" = 1 ] && has apt; then
+  for package in btop screen micro unzip; do
+    $SUDO apt install -y "$package" || echo "    $package: skip"
+  done
+else
+  echo "    skipped (no root or no apt)"
+fi
 
 echo "==> Installing Oh My Zsh"
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
+if [ ! -d "$HOME/.oh-my-zsh" ] && need curl git zsh; then
   # --keep-zshrc: do not generate a .zshrc; chezmoi owns it.
   # The jumo theme is shipped by chezmoi (see dot_oh-my-zsh/custom/themes).
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc \
+    || echo "    Oh My Zsh: failed"
 fi
 
 echo "==> Installing chezmoi"
-# Look in ~/.local/bin first: that is where we install it, and it is typically
-# not on PATH yet in the shell running this script, so relying on `command -v
-# chezmoi` alone would re-download it on every run.
-if [ -x "$HOME/.local/bin/chezmoi" ]; then
-  CHEZMOI="$HOME/.local/bin/chezmoi"
-elif command -v chezmoi >/dev/null 2>&1; then
-  CHEZMOI="chezmoi"
-else
-  sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
-  CHEZMOI="$HOME/.local/bin/chezmoi"
-fi
-
-echo "==> Applying dotfiles with chezmoi"
-# `chezmoi init` only clones when the source directory is not already a git
-# repo, and it never pulls. On subsequent runs, update the remote if needed
-# and pull/apply the latest dotfiles.
-SOURCE_DIR="$("$CHEZMOI" source-path 2>/dev/null || echo "$HOME/.local/share/chezmoi")"
-
-if [ -d "$SOURCE_DIR/.git" ]; then
-  current_url="$("$CHEZMOI" git -- remote get-url origin 2>/dev/null || true)"
-
-  if [ "$current_url" != "$DOTFILES_REPO" ]; then
-    "$CHEZMOI" git -- remote set-url origin "$DOTFILES_REPO" 2>/dev/null \
-      || "$CHEZMOI" git -- remote add origin "$DOTFILES_REPO"
+if need curl git; then
+  # Look in ~/.local/bin first: that is where we install it, and it is typically
+  # not on PATH yet in the shell running this script, so relying on `command -v
+  # chezmoi` alone would re-download it on every run.
+  if [ -x "$HOME/.local/bin/chezmoi" ]; then
+    CHEZMOI="$HOME/.local/bin/chezmoi"
+  elif command -v chezmoi >/dev/null 2>&1; then
+    CHEZMOI="chezmoi"
+  else
+    sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" \
+      || echo "    chezmoi: install failed"
+    CHEZMOI="$HOME/.local/bin/chezmoi"
   fi
 
-  "$CHEZMOI" update
-else
-  "$CHEZMOI" init --apply "$DOTFILES_REPO"
+  echo "==> Applying dotfiles with chezmoi"
+  # `chezmoi init` only clones when the source directory is not already a git
+  # repo, and it never pulls. On subsequent runs, update the remote if needed
+  # and pull/apply the latest dotfiles.
+  SOURCE_DIR="$("$CHEZMOI" source-path 2>/dev/null || echo "$HOME/.local/share/chezmoi")"
+
+  if [ -d "$SOURCE_DIR/.git" ]; then
+    current_url="$("$CHEZMOI" git -- remote get-url origin 2>/dev/null || true)"
+
+    if [ "$current_url" != "$DOTFILES_REPO" ]; then
+      "$CHEZMOI" git -- remote set-url origin "$DOTFILES_REPO" 2>/dev/null \
+        || "$CHEZMOI" git -- remote add origin "$DOTFILES_REPO"
+    fi
+
+    "$CHEZMOI" update || echo "    chezmoi: update failed"
+  else
+    "$CHEZMOI" init --apply "$DOTFILES_REPO" || echo "    chezmoi: init failed"
+  fi
 fi
 
 # Authorize SSH login keys. Append-only and idempotent: each key is added just
 # once and existing entries are left untouched.
-if [ -n "$SSH_KEYS_URL" ]; then
+if [ -n "$SSH_KEYS_URL" ] && need curl; then
   echo "==> Authorizing SSH login keys from $SSH_KEYS_URL"
 
   # Authorizing inbound keys implies wanting an SSH server to log into.
-  $SUDO apt install -y openssh-server
+  if [ "$CAN_ROOT" = 1 ] && has apt; then
+    $SUDO apt install -y openssh-server || echo "    openssh-server: skip"
+  fi
 
   mkdir -p "$HOME/.ssh"
   chmod 700 "$HOME/.ssh"
@@ -110,7 +154,7 @@ if [ -n "$ZSH_PATH" ] && [ "$current_shell" != "$ZSH_PATH" ]; then
 
   if [ "$(id -u)" -eq 0 ]; then
     chsh -s "$ZSH_PATH" "$(id -un)" || echo "    could not change shell"
-  elif sudo -n true 2>/dev/null; then
+  elif [ "$CAN_ROOT" = 1 ]; then
     sudo chsh -s "$ZSH_PATH" "$(id -un)" || echo "    could not change shell"
   elif [ -n "$UNATTENDED" ]; then
     echo "    skipped (would need a password); run later: chsh -s $ZSH_PATH"
@@ -121,7 +165,7 @@ if [ -n "$ZSH_PATH" ] && [ "$current_shell" != "$ZSH_PATH" ]; then
 fi
 
 echo "==> Installing AppMan (optional)"
-if [ ! -x "$HOME/.local/bin/appman" ]; then
+if [ ! -x "$HOME/.local/bin/appman" ] && need curl; then
   AM_INSTALLER="$(mktemp "${TMPDIR:-/tmp}/AM-INSTALLER.XXXXXX")"
 
   {
@@ -135,8 +179,8 @@ if [ ! -x "$HOME/.local/bin/appman" ]; then
 fi
 
 echo "==> Installing Zellij (optional)"
-if [ ! -x "$HOME/.local/bin/zellij" ]; then
-  {
+if [ ! -x "$HOME/.local/bin/zellij" ] && need curl tar; then
+  (
     case "$ARCH" in
       x86_64)        ZELLIJ_ARCH="x86_64" ;;
       aarch64|arm64) ZELLIJ_ARCH="aarch64" ;;
@@ -155,11 +199,11 @@ if [ ! -x "$HOME/.local/bin/zellij" ]; then
       tar -xz -C "$HOME/.local/bin"
 
     chmod +x "$HOME/.local/bin/zellij"
-  } >/dev/null 2>&1 || true
+  ) >/dev/null 2>&1 || true
 fi
 
 echo "==> Installing Yazi (optional)"
-if [ ! -x "$HOME/.local/bin/yazi" ]; then
+if [ ! -x "$HOME/.local/bin/yazi" ] && need curl; then
   (
     case "$ARCH" in
       x86_64)        YAZI_ARCH="x86_64" ;;
