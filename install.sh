@@ -60,6 +60,7 @@ elif [ -z "$UNATTENDED" ] && ( : </dev/tty ) 2>/dev/null; then
   esac
 fi
 
+### Installing basic packages #################################################################
 echo "==> Installing basic packages (ca-certificates curl git openssh-client zsh nano)"
 if [ "$CAN_ROOT" = 1 ] && has apt; then
   $SUDO apt update || true
@@ -70,6 +71,7 @@ else
   echo "    skipped (no root or no apt)"
 fi
 
+### Installing extra packages #################################################################
 echo "==> Installing extra packages (btop, screen, micro, unzip)"
 if [ "$CAN_ROOT" = 1 ] && has apt; then
   for package in btop screen micro unzip; do
@@ -79,6 +81,7 @@ else
   echo "    skipped (no root or no apt)"
 fi
 
+### Installing Oh My Zsh #################################################################
 echo "==> Installing Oh My Zsh"
 if [ ! -d "$HOME/.oh-my-zsh" ] && need curl git zsh; then
   # --keep-zshrc: do not generate a .zshrc; chezmoi owns it.
@@ -87,6 +90,7 @@ if [ ! -d "$HOME/.oh-my-zsh" ] && need curl git zsh; then
     || echo "    Oh My Zsh: failed"
 fi
 
+### Installing chezmoi #################################################################
 echo "==> Installing chezmoi"
 if need curl git; then
   # Look in ~/.local/bin first: that is where we install it, and it is typically
@@ -164,6 +168,7 @@ if [ -n "$ZSH_PATH" ] && [ "$current_shell" != "$ZSH_PATH" ]; then
   fi
 fi
 
+### Installing AppMan #################################################################
 echo "==> Installing AppMan (optional)"
 if [ ! -x "$HOME/.local/bin/appman" ] && need curl; then
   AM_INSTALLER="$(mktemp "${TMPDIR:-/tmp}/AM-INSTALLER.XXXXXX")"
@@ -178,6 +183,7 @@ if [ ! -x "$HOME/.local/bin/appman" ] && need curl; then
   rm -f "$AM_INSTALLER"
 fi
 
+### Installing Zellij #################################################################
 echo "==> Installing Zellij (optional)"
 if [ ! -x "$HOME/.local/bin/zellij" ] && need curl tar; then
   (
@@ -202,6 +208,7 @@ if [ ! -x "$HOME/.local/bin/zellij" ] && need curl tar; then
   ) >/dev/null 2>&1 || true
 fi
 
+### Installing Yazi #################################################################
 echo "==> Installing Yazi (optional)"
 if [ ! -x "$HOME/.local/bin/yazi" ] && need curl; then
   (
@@ -227,5 +234,9 @@ if [ ! -x "$HOME/.local/bin/yazi" ] && need curl; then
     install -m 755 "$YAZI_TMP"/yazi-*/yazi "$YAZI_TMP"/yazi-*/ya "$HOME/.local/bin/"
   ) >/dev/null 2>&1 || echo "    yazi: skip"
 fi
+
+### Installing parallel #################################################################
+echo "Installing GNU Parallel..."
+# TODO
 
 echo "==> Done. Start a new shell or run: exec zsh"
