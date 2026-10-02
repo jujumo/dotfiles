@@ -1,18 +1,26 @@
 #!/bin/sh
 # Dotfiles bootstrap installer.
 #
-# One-liner:
-#   sh -c "$(curl -fsLS https://raw.githubusercontent.com/jujumo/dotfiles/main/install.sh)"
+# Usage, cloning straight into chezmoi's source directory:
+#   sudo apt install -y git
+#   git clone https://github.com/jujumo/dotfiles.git ~/.local/share/chezmoi
+#   sh ~/.local/share/chezmoi/install.sh
 #
 # Installs base packages, Oh My Zsh, the jumo theme and chezmoi, then applies
-# the dotfiles. Override the source repo with DOTFILES_REPO=... if needed.
+# the dotfiles. The source repo is the origin of the clone this script runs
+# from; override it with DOTFILES_REPO=... if needed.
 #
 # Best effort: installs what permissions and prerequisites allow, skips the
 # rest. Without root or passwordless sudo, asks once whether to use sudo;
 # NO_ROOT=1 answers "no" up front (system packages are then skipped).
 # No `set -e`: best effort, a failing step is reported and the next one runs.
 
-DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/jujumo/dotfiles.git}"
+# Default to the origin of the clone this script lives in. The -f guard skips
+# `sh -c "$(curl ...)"`, where $0 is "sh" and dirname would be the cwd.
+DOTFILES_REPO="${DOTFILES_REPO:-}"
+if [ -z "$DOTFILES_REPO" ] && [ -f "$0" ]; then
+  DOTFILES_REPO="$(git -C "$(dirname "$0")" remote get-url origin 2>/dev/null)"
+fi
 
 # System information, available for optional installers.
 OS="$(uname -s)"
@@ -115,12 +123,14 @@ if need curl git; then
   if [ -d "$SOURCE_DIR/.git" ]; then
     current_url="$("$CHEZMOI" git -- remote get-url origin 2>/dev/null || true)"
 
-    if [ "$current_url" != "$DOTFILES_REPO" ]; then
+    if [ -n "$DOTFILES_REPO" ] && [ "$current_url" != "$DOTFILES_REPO" ]; then
       "$CHEZMOI" git -- remote set-url origin "$DOTFILES_REPO" 2>/dev/null \
         || "$CHEZMOI" git -- remote add origin "$DOTFILES_REPO"
     fi
 
     "$CHEZMOI" update || echo "    chezmoi: update failed"
+  elif [ -z "$DOTFILES_REPO" ]; then
+    echo "    skipped (no repo: clone it first, or set DOTFILES_REPO)"
   else
     "$CHEZMOI" init --apply "$DOTFILES_REPO" || echo "    chezmoi: init failed"
   fi

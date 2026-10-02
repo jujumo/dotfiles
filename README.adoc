@@ -8,21 +8,23 @@ chezmoi only tracks the dotfiles themselves. All installation (packages, Oh My Z
 
 == Install
 
-One line, on a fresh machine:
+On a fresh machine, install git, clone the repo straight into chezmoi's source directory, and run the installer from there:
 
 [source,shell]
 ----
-sh -c "$(curl -fsLS https://raw.githubusercontent.com/jujumo/dotfiles/main/install.sh)"
+sudo apt install -y git
+git clone https://github.com/jujumo/dotfiles.git ~/.local/share/chezmoi
+sh ~/.local/share/chezmoi/install.sh
 ----
 
-This installs base packages, Oh My Zsh and chezmoi, then runs `chezmoi init --apply` to lay down the dotfiles (including the `jumo` theme).
+This installs base packages, Oh My Zsh and chezmoi, then applies the dotfiles from that clone (including the `jumo` theme).
 
-To point at a different source repo, set `DOTFILES_REPO`:
+The source repo is the clone's `origin`. To point at a different one, clone it instead, or set `DOTFILES_REPO`:
 
 [source,shell]
 ----
 DOTFILES_REPO=git@github.com:you/dotfiles.git \
-  sh -c "$(curl -fsLS https://raw.githubusercontent.com/jujumo/dotfiles/main/install.sh)"
+  sh ~/.local/share/chezmoi/install.sh
 ----
 
 === Authorizing SSH login keys
@@ -34,7 +36,7 @@ The handiest source is your GitHub account's public keys:
 [source,shell]
 ----
 SSH_KEYS_URL=https://github.com/jujumo.keys \
-  sh -c "$(curl -fsLS https://raw.githubusercontent.com/jujumo/dotfiles/main/install.sh)"
+  sh ~/.local/share/chezmoi/install.sh
 ----
 
 Any URL `curl` can read works (including a local `file://` path). Only *public* keys are ever handled — no private key material is involved.
@@ -61,11 +63,12 @@ Files not meant for `$HOME` (`README.adoc`, `CLAUDE.md`, `install.sh`) are exclu
 ~/.local/share/chezmoi/install.sh
 ----
 
-Use the `curl` one-liner instead if `install.sh` itself changed (a new package, for example), since the local copy is only refreshed by the *previous* update:
+To pick up a change to `install.sh` itself (a new package, for example), pull first so the new version runs:
 
 [source,shell]
 ----
-sh -c "$(curl -fsLS https://raw.githubusercontent.com/jujumo/dotfiles/main/install.sh)"
+git -C ~/.local/share/chezmoi pull
+sh ~/.local/share/chezmoi/install.sh
 ----
 
 For the dotfiles only, without going through the package step:
