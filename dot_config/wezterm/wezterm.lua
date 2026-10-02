@@ -21,22 +21,22 @@ config.enable_kitty_graphics = true
 
 config.window_close_confirmation = 'NeverPrompt'
 
--- Solarized Dark (Ethan Schoonover canonical palette) -- same values as kitty.conf
+-- Catppuccin Mocha (official palette, same as the PuTTY port)
 config.colors = {
-  foreground = '#839496',
-  background = '#002b36',
-  cursor_bg = '#93a1a1',
-  cursor_border = '#93a1a1',
-  cursor_fg = '#002b36',
-  selection_bg = '#073642',
-  selection_fg = '#93a1a1',
+  foreground = '#cdd6f4',
+  background = '#1e1e2e',
+  cursor_bg = '#f5e0dc',
+  cursor_border = '#f5e0dc',
+  cursor_fg = '#1e1e2e',
+  selection_bg = '#585b70',
+  selection_fg = '#cdd6f4',
   ansi = {
-    '#073642', '#dc322f', '#859900', '#b58900',
-    '#268bd2', '#d33682', '#2aa198', '#eee8d5',
+    '#45475a', '#f38ba8', '#a6e3a1', '#f9e2af',
+    '#89b4fa', '#f5c2e7', '#94e2d5', '#bac2de',
   },
   brights = {
-    '#002b36', '#cb4b16', '#586e75', '#657b83',
-    '#839496', '#6c71c4', '#93a1a1', '#fdf6e3',
+    '#585b70', '#f38ba8', '#a6e3a1', '#f9e2af',
+    '#89b4fa', '#f5c2e7', '#94e2d5', '#a6adc8',
   },
 }
 
