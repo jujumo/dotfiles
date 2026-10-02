@@ -69,10 +69,10 @@ elif [ -z "$UNATTENDED" ] && ( : </dev/tty ) 2>/dev/null; then
 fi
 
 ### Installing basic packages #################################################################
-echo "==> Installing basic packages (ca-certificates curl git openssh-client zsh nano)"
+echo "==> Installing basic packages (ca-certificates curl wget git openssh-client zsh nano)"
 if [ "$CAN_ROOT" = 1 ] && has apt; then
   $SUDO apt update || true
-  for package in ca-certificates curl git openssh-client zsh nano; do
+  for package in ca-certificates curl wget git openssh-client zsh nano; do
     $SUDO apt install -y "$package" || echo "    $package: skip"
   done
 else
@@ -80,9 +80,9 @@ else
 fi
 
 ### Installing extra packages #################################################################
-echo "==> Installing extra packages (btop, screen, micro, unzip, bzip2, build-essential, perl)"
+echo "==> Installing extra packages (tree, btop, screen, micro, unzip, bzip2, build-essential, perl)"
 if [ "$CAN_ROOT" = 1 ] && has apt; then
-  for package in btop screen micro unzip bzip2 build-essential perl; do
+  for package in tree btop screen micro unzip bzip2 build-essential perl; do
     $SUDO apt install -y "$package" || echo "    $package: skip"
   done
 else
