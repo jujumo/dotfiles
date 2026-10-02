@@ -1,19 +1,28 @@
 #!/bin/sh
 # Dotfiles bootstrap installer.
 #
-# One-liner (needs an SSH key registered on es.naverlabs.com; the repo is private):
-#   d=$(mktemp -d) && git clone -q -b work git@es.naverlabs.com:julien-morat/dotfiles.git "$d" && sh "$d/install.sh"
+# Usage (see README.adoc): install git, clone the repo into chezmoi's source
+# directory ~/.local/share/chezmoi, then run this script from there.
 #
 # Installs base packages, Oh My Zsh, the jumo theme and chezmoi, then applies
-# the dotfiles. Override the source repo with DOTFILES_REPO=... if needed.
+# the dotfiles. The source repo is the remote tracked by the checked-out branch
+# of the clone this script runs from; override it with DOTFILES_REPO=... if
+# needed.
 #
 # Best effort: installs what permissions and prerequisites allow, skips the
 # rest. Without root or passwordless sudo, asks once whether to use sudo;
 # NO_ROOT=1 answers "no" up front (system packages are then skipped).
 # No `set -e`: best effort, a failing step is reported and the next one runs.
 
-DOTFILES_REPO="${DOTFILES_REPO:-git@es.naverlabs.com:julien-morat/dotfiles.git}"
-GITHUB_REPO="git@github.com:jujumo/dotfiles.git"
+# Default to the remote tracked by the clone this script lives in (origin for
+# a plain clone). The -f guard skips `sh -c "$(curl ...)"`, where $0 is "sh"
+# and dirname would be the cwd.
+DOTFILES_REPO="${DOTFILES_REPO:-}"
+if [ -z "$DOTFILES_REPO" ] && [ -f "$0" ]; then
+  script_git() { git -C "$(dirname "$0")" "$@" 2>/dev/null; }
+  remote="$(script_git config "branch.$(script_git branch --show-current).remote")"
+  DOTFILES_REPO="$(script_git remote get-url "${remote:-origin}")"
+fi
 
 # System information, available for optional installers.
 OS="$(uname -s)"
@@ -61,6 +70,7 @@ elif [ -z "$UNATTENDED" ] && ( : </dev/tty ) 2>/dev/null; then
   esac
 fi
 
+### Installing basic packages #################################################################
 echo "==> Installing basic packages (ca-certificates curl git openssh-client zsh nano)"
 if [ "$CAN_ROOT" = 1 ] && has apt; then
   $SUDO apt update || true
@@ -71,15 +81,17 @@ else
   echo "    skipped (no root or no apt)"
 fi
 
-echo "==> Installing extra packages (btop, screen, micro, unzip)"
+### Installing extra packages #################################################################
+echo "==> Installing extra packages (btop, screen, micro, unzip, bzip2, build-essential, perl)"
 if [ "$CAN_ROOT" = 1 ] && has apt; then
-  for package in btop screen micro unzip; do
+  for package in btop screen micro unzip bzip2 build-essential perl; do
     $SUDO apt install -y "$package" || echo "    $package: skip"
   done
 else
   echo "    skipped (no root or no apt)"
 fi
 
+### Installing Oh My Zsh #################################################################
 echo "==> Installing Oh My Zsh"
 if [ ! -d "$HOME/.oh-my-zsh" ] && need curl git zsh; then
   # --keep-zshrc: do not generate a .zshrc; chezmoi owns it.
@@ -88,6 +100,7 @@ if [ ! -d "$HOME/.oh-my-zsh" ] && need curl git zsh; then
     || echo "    Oh My Zsh: failed"
 fi
 
+### Installing chezmoi #################################################################
 echo "==> Installing chezmoi"
 if need curl git; then
   # Look in ~/.local/bin first: that is where we install it, and it is typically
@@ -109,16 +122,24 @@ if need curl git; then
   # and pull/apply the latest dotfiles.
   SOURCE_DIR="$("$CHEZMOI" source-path 2>/dev/null || echo "$HOME/.local/share/chezmoi")"
 
-  if [ ! -d "$SOURCE_DIR/.git" ]; then
-    "$CHEZMOI" init --branch work "$DOTFILES_REPO" || echo "    chezmoi: init failed"
+  if [ -d "$SOURCE_DIR/.git" ]; then
+    # The remote the checked-out branch pulls from (origin for a plain clone).
+    branch="$(git -C "$SOURCE_DIR" branch --show-current 2>/dev/null)"
+    remote="$(git -C "$SOURCE_DIR" config "branch.$branch.remote" 2>/dev/null)"
+    remote="${remote:-origin}"
+    current_url="$(git -C "$SOURCE_DIR" remote get-url "$remote" 2>/dev/null || true)"
+
+    if [ -n "$DOTFILES_REPO" ] && [ "$current_url" != "$DOTFILES_REPO" ]; then
+      git -C "$SOURCE_DIR" remote set-url "$remote" "$DOTFILES_REPO" 2>/dev/null \
+        || git -C "$SOURCE_DIR" remote add "$remote" "$DOTFILES_REPO"
+    fi
+
+    "$CHEZMOI" update || echo "    chezmoi: update failed"
+  elif [ -z "$DOTFILES_REPO" ]; then
+    echo "    skipped (no repo: clone it first, or set DOTFILES_REPO)"
+  else
+    "$CHEZMOI" init --apply "$DOTFILES_REPO" || echo "    chezmoi: init failed"
   fi
-  # Remotes as in ../pro: naver (pulled, tracks work) and github (perso).
-  "$CHEZMOI" git -- remote rename origin naver 2>/dev/null
-  "$CHEZMOI" git -- remote set-url naver "$DOTFILES_REPO" 2>/dev/null \
-    || "$CHEZMOI" git -- remote add naver "$DOTFILES_REPO"
-  "$CHEZMOI" git -- remote set-url github "$GITHUB_REPO" 2>/dev/null \
-    || "$CHEZMOI" git -- remote add github "$GITHUB_REPO"
-  "$CHEZMOI" update || echo "    chezmoi: update failed"
 fi
 
 # Authorize SSH login keys. Append-only and idempotent: each key is added just
@@ -163,6 +184,7 @@ if [ -n "$ZSH_PATH" ] && [ "$current_shell" != "$ZSH_PATH" ]; then
   fi
 fi
 
+### Installing AppMan #################################################################
 echo "==> Installing AppMan (optional)"
 if [ ! -x "$HOME/.local/bin/appman" ] && need curl; then
   AM_INSTALLER="$(mktemp "${TMPDIR:-/tmp}/AM-INSTALLER.XXXXXX")"
@@ -177,6 +199,7 @@ if [ ! -x "$HOME/.local/bin/appman" ] && need curl; then
   rm -f "$AM_INSTALLER"
 fi
 
+### Installing Zellij #################################################################
 echo "==> Installing Zellij (optional)"
 if [ ! -x "$HOME/.local/bin/zellij" ] && need curl tar; then
   (
@@ -201,6 +224,7 @@ if [ ! -x "$HOME/.local/bin/zellij" ] && need curl tar; then
   ) >/dev/null 2>&1 || true
 fi
 
+### Installing Yazi #################################################################
 echo "==> Installing Yazi (optional)"
 if [ ! -x "$HOME/.local/bin/yazi" ] && need curl; then
   (
@@ -225,6 +249,23 @@ if [ ! -x "$HOME/.local/bin/yazi" ] && need curl; then
     fi
     install -m 755 "$YAZI_TMP"/yazi-*/yazi "$YAZI_TMP"/yazi-*/ya "$HOME/.local/bin/"
   ) >/dev/null 2>&1 || echo "    yazi: skip"
+fi
+
+### Installing parallel #################################################################
+echo "==> Installing GNU parallel (optional)"
+# Perl script, so arch-independent; built from source into ~/.local (no root).
+if [ ! -x "$HOME/.local/bin/parallel" ] && ! has parallel && need curl tar bzip2 make perl; then
+  (
+    PARALLEL_TMP="$(mktemp -d "${TMPDIR:-/tmp}/parallel.XXXXXX")"
+    trap 'rm -rf "$PARALLEL_TMP"' EXIT
+
+    curl -fsSL "https://ftpmirror.gnu.org/parallel/parallel-latest.tar.bz2" |
+      tar -xj -C "$PARALLEL_TMP"
+    cd "$PARALLEL_TMP"/parallel-*/ &&
+      ./configure --prefix="$HOME/.local" &&
+      make &&
+      make install
+  ) >/dev/null 2>&1 || echo "    parallel: skip"
 fi
 
 echo "==> Done. Start a new shell or run: exec zsh"
