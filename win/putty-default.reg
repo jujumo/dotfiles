@@ -10,8 +10,11 @@ Windows Registry Editor Version 5.00
 "ScrollOnDisp"=dword:00000000
 "TermHeight"=dword:00000028
 "Font"="DroidSansM Nerd Font Mono"
+"FontIsBold"=dword:00000000
+"FontCharSet"=dword:00000000
 "FontHeight"=dword:0000000c
 "FontQuality"=dword:00000003
+"FontVTMode"=dword:00000004
 "HideMousePtr"=dword:00000001
 "BoldAsColour"=dword:00000000
 "MouseIsXterm"=dword:00000001
