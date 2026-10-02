@@ -17,26 +17,22 @@ git clone https://github.com/jujumo/dotfiles.git ~/.local/share/chezmoi
 sh ~/.local/share/chezmoi/install.sh
 ----
 
-This installs base packages, Oh My Zsh and chezmoi, then applies the dotfiles from that clone (including the `jumo` theme).
+This installs the packages and tools listed below, then applies the dotfiles from that clone (including the `jumo` theme). The source repo is the clone's `origin`: to use another repo, clone that one instead.
 
-The source repo is the clone's `origin`. To point at a different one, clone it instead, or set `DOTFILES_REPO`:
+Installation is best effort: a step that lacks permissions or prerequisites is skipped and the next one runs. Without root or passwordless sudo, the installer asks once whether to use sudo. Two environment variables change this:
 
-[source,shell]
-----
-DOTFILES_REPO=git@github.com:you/dotfiles.git \
-  sh ~/.local/share/chezmoi/install.sh
-----
+* `NO_ROOT=1` — never use sudo (system packages are skipped).
+* `UNATTENDED=1` — never prompt (steps that would need a password are skipped).
 
 === Authorizing SSH login keys
 
-Set `SSH_KEYS_URL` to also authorize SSH keys for logging *into* this machine. The installer fetches the public keys from that URL and appends them to `~/.ssh/authorized_keys` (append-only and idempotent — existing entries are left untouched), and installs `openssh-server` so the host is reachable. Unset by default, so nothing is authorized unless you opt in.
+Set `SSH_KEYS_URL` when running step 3 to also authorize SSH keys for logging *into* this machine. The installer fetches the public keys from that URL and appends them to `~/.ssh/authorized_keys` (append-only and idempotent — existing entries are left untouched), and installs `openssh-server` so the host is reachable. Unset by default, so nothing is authorized unless you opt in.
 
 The handiest source is your GitHub account's public keys:
 
 [source,shell]
 ----
-SSH_KEYS_URL=https://github.com/jujumo.keys \
-  sh ~/.local/share/chezmoi/install.sh
+SSH_KEYS_URL=https://github.com/jujumo.keys sh ~/.local/share/chezmoi/install.sh
 ----
 
 Any URL `curl` can read works (including a local `file://` path). Only *public* keys are ever handled — no private key material is involved.
@@ -45,25 +41,20 @@ Any URL `curl` can read works (including a local `file://` path). Only *public* 
 
 The `install.sh` script sets up:
 
-* common CLI tools (`nano`, `git`, `curl`, ...)
-* *zsh* and *Oh My Zsh* (unattended, without generating its own `.zshrc` — chezmoi owns that)
+* base packages: `ca-certificates`, `curl`, `git`, `openssh-client`, `zsh`, `nano`
+* extra packages: `btop`, `screen`, `micro`, `unzip`, `bzip2`, `build-essential`, `perl`
+* *Oh My Zsh* (unattended, without generating its own `.zshrc` — chezmoi owns that), and zsh as the login shell
 * *chezmoi*, into `~/.local/bin`
 * *openssh-server* — only when `SSH_KEYS_URL` is set (see above)
-* *zellij*, into `~/.local/bin`
-* *appman*, into `~/.local/bin`
+* *appman*, *zellij*, *yazi* and *GNU parallel*, into `~/.local/bin` (optional)
+
+System packages need root (apt); everything else installs into your home directory.
 
 Files not meant for `$HOME` (`README.adoc`, `CLAUDE.md`, `install.sh`) are excluded via `.chezmoiignore`.
 
 == Update
 
-`install.sh` is idempotent and is also the update command: re-run it and it pulls the latest commits of the source repo and applies them (steps already done — Oh My Zsh, chezmoi — are skipped).
-
-[source,shell]
-----
-~/.local/share/chezmoi/install.sh
-----
-
-To pick up a change to `install.sh` itself (a new package, for example), pull first so the new version runs:
+`install.sh` is idempotent and is also the update command: re-run it and it pulls the latest commits of the source repo and applies them (steps already done — Oh My Zsh, chezmoi — are skipped). Pull first, so that a change to `install.sh` itself (a new package, for example) is the version that runs:
 
 [source,shell]
 ----
@@ -78,7 +69,7 @@ For the dotfiles only, without going through the package step:
 chezmoi update             # git pull + apply
 ----
 
-NOTE: `chezmoi update` rebases the source directory. If you have local commits there that are not pushed, the pull can stop on a conflict — `install.sh` then exits with an error rather than applying a stale state.
+NOTE: `chezmoi update` rebases the source directory. If you have local commits there that are not pushed, the pull can stop on a conflict — nothing is applied until you resolve it.
 
 == Day-to-day usage
 
