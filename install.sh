@@ -236,7 +236,20 @@ if [ ! -x "$HOME/.local/bin/yazi" ] && need curl; then
 fi
 
 ### Installing parallel #################################################################
-echo "Installing GNU Parallel..."
-# TODO
+echo "==> Installing GNU parallel (optional)"
+# Perl script, so arch-independent; built from source into ~/.local (no root).
+if [ ! -x "$HOME/.local/bin/parallel" ] && ! has parallel && need curl tar bzip2 make perl; then
+  (
+    PARALLEL_TMP="$(mktemp -d "${TMPDIR:-/tmp}/parallel.XXXXXX")"
+    trap 'rm -rf "$PARALLEL_TMP"' EXIT
+
+    curl -fsSL "https://ftpmirror.gnu.org/parallel/parallel-latest.tar.bz2" |
+      tar -xj -C "$PARALLEL_TMP"
+    cd "$PARALLEL_TMP"/parallel-*/ &&
+      ./configure --prefix="$HOME/.local" &&
+      make &&
+      make install
+  ) >/dev/null 2>&1 || echo "    parallel: skip"
+fi
 
 echo "==> Done. Start a new shell or run: exec zsh"
