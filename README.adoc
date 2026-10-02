@@ -2,9 +2,13 @@
 :toc:
 :toc-placement: preamble
 
+.How it looks like
+image::screenshot.png[screenshot]
+
 Personal dotfiles managed with https://www.chezmoi.io/[chezmoi].
 
-chezmoi only tracks the dotfiles themselves. All installation (packages, Oh My Zsh, the `jumo` theme, chezmoi itself) lives in a standalone `install.sh` bootstrap script.
+chezmoi only tracks the dotfiles themselves. 
+All installation (packages, Oh My Zsh, the `jumo` theme, chezmoi itself) lives in a standalone `install.sh` bootstrap script.
 
 == Install
 
@@ -12,7 +16,7 @@ On a fresh machine, install git, clone the repo straight into chezmoi's source d
 
 [source,shell]
 ----
-sudo apt install -y git
+sudo apt update && sudo apt install -y git
 git clone https://github.com/jujumo/dotfiles.git ~/.local/share/chezmoi
 sh ~/.local/share/chezmoi/install.sh
 ----
