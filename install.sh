@@ -193,6 +193,25 @@ if [ ! -x "$HOME/.local/bin/appman" ] && need curl; then
   rm -f "$AM_INSTALLER"
 fi
 
+# Look in ~/.local/bin first (where we just installed it, and typically not
+# yet on PATH in this shell), else fall back to an existing `appman` on PATH.
+if [ -x "$HOME/.local/bin/appman" ]; then
+  APPMAN="$HOME/.local/bin/appman"
+elif command -v appman >/dev/null 2>&1; then
+  APPMAN="appman"
+else
+  APPMAN=""
+fi
+
+echo "==> Installing apps via AppMan (gitui)"
+if [ -n "$APPMAN" ]; then
+  for app in gitui; do
+    "$APPMAN" -i "$app" >/dev/null 2>&1 || echo "    $app: skip"
+  done
+else
+  echo "    skipped (no appman)"
+fi
+
 ### Installing Zellij #################################################################
 echo "==> Installing Zellij (optional)"
 if [ ! -x "$HOME/.local/bin/zellij" ] && need curl tar; then

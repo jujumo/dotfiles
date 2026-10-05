@@ -51,6 +51,7 @@ The `install.sh` script sets up:
 * *chezmoi*, into `~/.local/bin`
 * *openssh-server* — only when `SSH_KEYS_URL` is set (see above)
 * *appman*, *zellij*, *yazi* and *GNU parallel*, into `~/.local/bin` (optional)
+* a short list of applications installed via `appman` (currently: `gitui`)
 
 System packages need root (apt); everything else installs into your home directory.
 
