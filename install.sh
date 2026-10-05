@@ -187,7 +187,9 @@ if [ ! -x "$HOME/.local/bin/appman" ] && need curl; then
     curl -fsSL -o "$AM_INSTALLER" \
       https://raw.githubusercontent.com/ivan-hc/AM/main/AM-INSTALLER
     chmod a+x "$AM_INSTALLER"
-    "$AM_INSTALLER" -i appman
+    # AM-INSTALLER calls tput unguarded; it aborts without a $TERM (true for
+    # any non-interactive shell: cron, CI, this very script over SSH).
+    TERM="${TERM:-dumb}" "$AM_INSTALLER" -i appman
   } >/dev/null 2>&1 || true
 
   rm -f "$AM_INSTALLER"
@@ -203,10 +205,12 @@ else
   APPMAN=""
 fi
 
-echo "==> Installing apps via AppMan (gitui)"
+echo "==> Installing apps via AppMan (lazygit, 7z)"
 if [ -n "$APPMAN" ]; then
-  for app in gitui; do
-    "$APPMAN" -i "$app" >/dev/null 2>&1 || echo "    $app: skip"
+  for app in lazygit; do
+    # -y must come first: it's only recognized as $1, and makes appman
+    # auto-answer its install prompts instead of hanging on stdin.
+    "$APPMAN" -y -i "$app" >/dev/null 2>&1 </dev/null || echo "    $app: skip"
   done
 else
   echo "    skipped (no appman)"
