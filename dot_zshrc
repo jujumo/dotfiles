@@ -13,7 +13,12 @@ plugins=(
 	screen 
 	docker
         copypath copypath copybuffer
+	ssh-agent
 )
+# start/reuse one agent per host (lazy: keys added on first use if ssh AddKeysToAgent is set, else ssh-add)
+zstyle :omz:plugins:ssh-agent lazy yes
+zstyle :omz:plugins:ssh-agent quiet yes
+zstyle :omz:plugins:ssh-agent honor-existing yes
 
 HIST_STAMPS="yyyy-mm-dd"
 source $ZSH/oh-my-zsh.sh
