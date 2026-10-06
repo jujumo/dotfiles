@@ -2,7 +2,48 @@
   "permissions": {
     "defaultMode": "auto"
   },
+  "model": "opus",
   "tui": "fullscreen",
   "theme": "light",
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "statusLine": {
+    "type": "command",
+    "command": "claudetui statusline",
+    "refreshInterval": 10
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudetui hook session-heatmap"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudetui hook pre-edit-churn"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudetui hook post-edit-deps"
+          }
+        ]
+      }
+    ]
+  }
 }
