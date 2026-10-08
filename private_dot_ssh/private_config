@@ -1,9 +1,9 @@
 Host *
     AddKeysToAgent yes
-    
+
 Host nas-jumo
     HostName nas-jumo
     Port 35123
     User jumo
     RequestTTY yes
-    RemoteCommand /usr/local/bin/zsh -l    
+    RemoteCommand /usr/local/bin/zsh -l
