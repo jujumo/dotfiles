@@ -71,10 +71,10 @@ elif [ -z "$UNATTENDED" ] && ( : </dev/tty ) 2>/dev/null; then
 fi
 
 ### Installing basic packages #################################################################
-echo "==> Installing basic packages (ca-certificates curl git openssh-client zsh nano)"
+echo "==> Installing basic packages (ca-certificates curl wget git openssh-client zsh nano)"
 if [ "$CAN_ROOT" = 1 ] && has apt; then
   $SUDO apt update || true
-  for package in ca-certificates curl git openssh-client zsh nano; do
+  for package in ca-certificates curl wget git openssh-client zsh nano; do
     $SUDO apt install -y "$package" || echo "    $package: skip"
   done
 else
@@ -82,9 +82,9 @@ else
 fi
 
 ### Installing extra packages #################################################################
-echo "==> Installing extra packages (btop, screen, micro, unzip, bzip2, build-essential, perl)"
+echo "==> Installing extra packages (tree, btop, screen, micro, unzip, bzip2, build-essential, perl)"
 if [ "$CAN_ROOT" = 1 ] && has apt; then
-  for package in btop screen micro unzip bzip2 build-essential perl; do
+  for package in tree btop screen micro unzip bzip2 build-essential perl; do
     $SUDO apt install -y "$package" || echo "    $package: skip"
   done
 else
@@ -193,10 +193,33 @@ if [ ! -x "$HOME/.local/bin/appman" ] && need curl; then
     curl -fsSL -o "$AM_INSTALLER" \
       https://raw.githubusercontent.com/ivan-hc/AM/main/AM-INSTALLER
     chmod a+x "$AM_INSTALLER"
-    "$AM_INSTALLER" -i appman
+    # AM-INSTALLER calls tput unguarded; it aborts without a $TERM (true for
+    # any non-interactive shell: cron, CI, this very script over SSH).
+    TERM="${TERM:-dumb}" "$AM_INSTALLER" -i appman
   } >/dev/null 2>&1 || true
 
   rm -f "$AM_INSTALLER"
+fi
+
+# Look in ~/.local/bin first (where we just installed it, and typically not
+# yet on PATH in this shell), else fall back to an existing `appman` on PATH.
+if [ -x "$HOME/.local/bin/appman" ]; then
+  APPMAN="$HOME/.local/bin/appman"
+elif command -v appman >/dev/null 2>&1; then
+  APPMAN="appman"
+else
+  APPMAN=""
+fi
+
+echo "==> Installing apps via AppMan (lazygit, 7z)"
+if [ -n "$APPMAN" ]; then
+  for app in lazygit; do
+    # -y must come first: it's only recognized as $1, and makes appman
+    # auto-answer its install prompts instead of hanging on stdin.
+    "$APPMAN" -y -i "$app" >/dev/null 2>&1 </dev/null || echo "    $app: skip"
+  done
+else
+  echo "    skipped (no appman)"
 fi
 
 ### Installing Zellij #################################################################

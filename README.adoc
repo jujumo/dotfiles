@@ -2,9 +2,13 @@
 :toc:
 :toc-placement: preamble
 
+.How it looks like
+image::screenshot.png[screenshot]
+
 Personal dotfiles managed with https://www.chezmoi.io/[chezmoi].
 
-chezmoi only tracks the dotfiles themselves. All installation (packages, Oh My Zsh, the `jumo` theme, chezmoi itself) lives in a standalone `install.sh` bootstrap script.
+chezmoi only tracks the dotfiles themselves. 
+All installation (packages, Oh My Zsh, the `jumo` theme, chezmoi itself) lives in a standalone `install.sh` bootstrap script.
 
 == Install
 
@@ -12,7 +16,7 @@ On a fresh machine, install git, clone the repo straight into chezmoi's source d
 
 [source,shell]
 ----
-sudo apt install -y git
+sudo apt update && sudo apt install -y git
 git clone -o naver -b work git@es.naverlabs.com:julien-morat/dotfiles.git ~/.local/share/chezmoi
 git -C ~/.local/share/chezmoi remote add github git@github.com:jujumo/dotfiles.git
 sh ~/.local/share/chezmoi/install.sh
@@ -48,6 +52,7 @@ The `install.sh` script sets up:
 * *chezmoi*, into `~/.local/bin`
 * *openssh-server* — only when `SSH_KEYS_URL` is set (see above)
 * *appman*, *zellij*, *yazi* and *GNU parallel*, into `~/.local/bin` (optional)
+* a short list of applications installed via `appman` (currently: `gitui`)
 
 System packages need root (apt); everything else installs into your home directory.
 
