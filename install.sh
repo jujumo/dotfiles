@@ -205,9 +205,9 @@ else
   APPMAN=""
 fi
 
-echo "==> Installing apps via AppMan (lazygit, 7z)"
+echo "==> Installing apps via AppMan (7z, notify-send, lazygit, fzf)"
 if [ -n "$APPMAN" ]; then
-  for app in lazygit; do
+  for app in 7z notify-send lazygit fzf; do
     # -y must come first: it's only recognized as $1, and makes appman
     # auto-answer its install prompts instead of hanging on stdin.
     "$APPMAN" -y -i "$app" >/dev/null 2>&1 </dev/null || echo "    $app: skip"
