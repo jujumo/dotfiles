@@ -285,4 +285,36 @@ if [ ! -x "$HOME/.local/bin/parallel" ] && ! has parallel && need curl tar bzip2
   ) >/dev/null 2>&1 || echo "    parallel: skip"
 fi
 
+### Installing uv #################################################################
+echo "==> Installing uv (optional)"
+# Static binary, no root and no system python needed. UV_NO_MODIFY_PATH keeps
+# the installer away from our rc files (chezmoi owns them).
+if [ ! -x "$HOME/.local/bin/uv" ] && ! has uv && need curl; then
+  curl -LsSf https://astral.sh/uv/install.sh |
+    UV_NO_MODIFY_PATH=1 UV_UNMANAGED_INSTALL="$HOME/.local/bin" sh >/dev/null 2>&1 \
+    || echo "    uv: failed"
+fi
+
+# Look in ~/.local/bin first (where we just installed it, and typically not
+# yet on PATH in this shell), else fall back to an existing `uv` on PATH.
+if [ -x "$HOME/.local/bin/uv" ]; then
+  UV="$HOME/.local/bin/uv"
+elif has uv; then
+  UV="uv"
+else
+  UV=""
+fi
+
+### Installing uv tools #################################################################
+echo "==> Installing tools via uv (trash-cli)"
+if [ -n "$UV" ]; then
+  if [ -x "$HOME/.local/bin/trash-put" ] || has trash-put; then
+    echo "    trash-cli: already installed"
+  else
+    "$UV" tool install trash-cli >/dev/null 2>&1 </dev/null || echo "    trash-cli: failed"
+  fi
+else
+  echo "    skipped (no uv)"
+fi
+
 echo "==> Done. Start a new shell or run: exec zsh"
