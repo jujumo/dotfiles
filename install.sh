@@ -317,4 +317,25 @@ else
   echo "    skipped (no uv)"
 fi
 
+### Installing direnv #################################################################
+echo "==> Installing direnv (optional)"
+# Static Go binary from GitHub releases; no root needed. Skipped if already
+# present (e.g. from a distro package).
+if [ ! -x "$HOME/.local/bin/direnv" ] && ! has direnv && need curl; then
+  (
+    case "$ARCH" in
+      x86_64)        DIRENV_ARCH="amd64" ;;
+      aarch64|arm64) DIRENV_ARCH="arm64" ;;
+      *)             exit 0 ;;
+    esac
+    [ "$OS" = "Linux" ] || exit 0
+
+    mkdir -p "$HOME/.local/bin"
+
+    curl -fsSL -o "$HOME/.local/bin/direnv" \
+      "https://github.com/direnv/direnv/releases/latest/download/direnv.linux-${DIRENV_ARCH}" &&
+      chmod +x "$HOME/.local/bin/direnv"
+  ) >/dev/null 2>&1 || echo "    direnv: skip"
+fi
+
 echo "==> Done. Start a new shell or run: exec zsh"

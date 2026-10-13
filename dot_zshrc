@@ -8,11 +8,12 @@ plugins=(
 	gitfast 
 	common-aliases 
 	rsync 
+	direnv
 	debian 
 	sudo 
 	screen 
 	docker
-        copypath copypath copybuffer
+    copypath copypath copybuffer
 	ssh-agent
 )
 # start/reuse one agent per host (lazy: keys added on first use if ssh AddKeysToAgent is set, else ssh-add)
