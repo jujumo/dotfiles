@@ -211,9 +211,9 @@ else
   APPMAN=""
 fi
 
-echo "==> Installing apps via AppMan (lazygit, 7z)"
+echo "==> Installing apps via AppMan (7z, notify-send, lazygit, fzf)"
 if [ -n "$APPMAN" ]; then
-  for app in lazygit; do
+  for app in 7z notify-send lazygit fzf; do
     # -y must come first: it's only recognized as $1, and makes appman
     # auto-answer its install prompts instead of hanging on stdin.
     "$APPMAN" -y -i "$app" >/dev/null 2>&1 </dev/null || echo "    $app: skip"
@@ -289,6 +289,59 @@ if [ ! -x "$HOME/.local/bin/parallel" ] && ! has parallel && need curl tar bzip2
       make &&
       make install
   ) >/dev/null 2>&1 || echo "    parallel: skip"
+fi
+
+### Installing uv #################################################################
+echo "==> Installing uv (optional)"
+# Static binary, no root and no system python needed. UV_NO_MODIFY_PATH keeps
+# the installer away from our rc files (chezmoi owns them).
+if [ ! -x "$HOME/.local/bin/uv" ] && ! has uv && need curl; then
+  curl -LsSf https://astral.sh/uv/install.sh |
+    UV_NO_MODIFY_PATH=1 UV_UNMANAGED_INSTALL="$HOME/.local/bin" sh >/dev/null 2>&1 \
+    || echo "    uv: failed"
+fi
+
+# Look in ~/.local/bin first (where we just installed it, and typically not
+# yet on PATH in this shell), else fall back to an existing `uv` on PATH.
+if [ -x "$HOME/.local/bin/uv" ]; then
+  UV="$HOME/.local/bin/uv"
+elif has uv; then
+  UV="uv"
+else
+  UV=""
+fi
+
+### Installing uv tools #################################################################
+echo "==> Installing tools via uv (trash-cli)"
+if [ -n "$UV" ]; then
+  if [ -x "$HOME/.local/bin/trash-put" ] || has trash-put; then
+    echo "    trash-cli: already installed"
+  else
+    "$UV" tool install trash-cli >/dev/null 2>&1 </dev/null || echo "    trash-cli: failed"
+  fi
+else
+  echo "    skipped (no uv)"
+fi
+
+### Installing direnv #################################################################
+echo "==> Installing direnv (optional)"
+# Static Go binary from GitHub releases; no root needed. Skipped if already
+# present (e.g. from a distro package).
+if [ ! -x "$HOME/.local/bin/direnv" ] && ! has direnv && need curl; then
+  (
+    case "$ARCH" in
+      x86_64)        DIRENV_ARCH="amd64" ;;
+      aarch64|arm64) DIRENV_ARCH="arm64" ;;
+      *)             exit 0 ;;
+    esac
+    [ "$OS" = "Linux" ] || exit 0
+
+    mkdir -p "$HOME/.local/bin"
+
+    curl -fsSL -o "$HOME/.local/bin/direnv" \
+      "https://github.com/direnv/direnv/releases/latest/download/direnv.linux-${DIRENV_ARCH}" &&
+      chmod +x "$HOME/.local/bin/direnv"
+  ) >/dev/null 2>&1 || echo "    direnv: skip"
 fi
 
 echo "==> Done. Start a new shell or run: exec zsh"
