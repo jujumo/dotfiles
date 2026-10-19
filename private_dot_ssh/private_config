@@ -18,6 +18,7 @@ Host chaos-* rock water loca-* juno-* pmogpu hobbs-*
 
 Host frontend-1 frontend-2 wood sensei
   HostName %h.infra.europe.naverlabs.com
+  WarnWeakCrypto no
   ForwardX11 yes
   ForwardX11Trusted yes
   IdentityFile /home/jmorat/.ssh/id_rsa
