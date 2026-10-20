@@ -57,6 +57,20 @@ System packages need root (apt); everything else installs into your home directo
 
 Files not meant for `$HOME` (`README.adoc`, `CLAUDE.md`, `install.sh`) are excluded via `.chezmoiignore`.
 
+== Rust (cargo)
+
+Not handled by `install.sh`. Do _not_ use `appman` for it: its `cargo` is `cargo-appimage`, an unrelated tool that shadows the real one.
+
+Install `rustup` the default way (into `~/.cargo` and `~/.rustup`), then link the rustup tools into `~/.local/bin`, which is already on `PATH`:
+
+[source,shell]
+----
+curl -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+ln -s ~/.cargo/bin/{cargo,rustc,rustup} ~/.local/bin/
+----
+
+chezmoi provides `~/.cargo/config.toml` (from `dot_cargo/config.toml.tmpl`), which sets `install.root` to `~/.local`. A plain `cargo install --path .` therefore puts binaries straight into `~/.local/bin`, with no symlink. The order does not matter: rustup keeps an existing `config.toml`. The path must be absolute, as cargo does not expand `~` and resolves a relative `install.root` against the current directory.
+
 == Update
 
 `install.sh` is idempotent and is also the update command: re-run it and it pulls the latest commits of the source repo and applies them (steps already done — Oh My Zsh, chezmoi — are skipped). Pull first, so that a change to `install.sh` itself (a new package, for example) is the version that runs:
