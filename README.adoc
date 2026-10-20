@@ -112,7 +112,7 @@ git push naver main
 
 or calls: 
 ----
-./pull_upstream.sh
+./merge_perso.sh
 ----
 
 == Day-to-day usage
