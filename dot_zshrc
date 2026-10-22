@@ -4,7 +4,7 @@ export EDITOR='nano'
 ZSH_THEME="jumo"
 zstyle ':omz:update' frequency 5
 plugins=(
-	cp 
+	cp fzf
 	gitfast 
 	common-aliases 
 	rsync 
@@ -13,7 +13,7 @@ plugins=(
 	sudo 
 	screen 
 	docker
-    copypath copypath copybuffer
+	copypath copybuffer
 	ssh-agent
 )
 # start/reuse one agent per host (lazy: keys added on first use if ssh AddKeysToAgent is set, else ssh-add)
