@@ -2,13 +2,50 @@
 :toc:
 :toc-placement: preamble
 
+Personal dotfiles managed with https://www.chezmoi.io/[chezmoi].
+
+chezmoi only tracks the dotfiles themselves.
+All installation (packages, Oh My Zsh, the `jumo` theme, chezmoi itself) lives in a standalone `install.sh` bootstrap script.
+
+Quick install on a fresh machine (see <<Install>> for options):
+
+[source,shell]
+----
+sudo apt update && sudo apt install -y git
+git clone https://github.com/jujumo/dotfiles.git ~/.local/share/chezmoi
+sh ~/.local/share/chezmoi/install.sh
+----
+
+== What you get
+
 .How it looks like
 image::screenshot.png[screenshot]
 
-Personal dotfiles managed with https://www.chezmoi.io/[chezmoi].
+[cols="1,4",frame=none,grid=none]
+|===
+| Zsh shell      | zsh as login shell, Oh My Zsh (without its own `.zshrc` — chezmoi owns that), the `jumo` prompt theme
+| Dotfiles       | chezmoi (in `~/.local/bin`), applying this repo
+| SSH            | `openssh-client`; opt-in login: `openssh-server` + keys from `SSH_KEYS_URL` in `authorized_keys` (see <<Authorizing SSH login keys>>)
+| Downloads      | `curl`, `wget`, `ca-certificates`
+| Git            | `git`, `lazygit`{asterisk} (terminal UI)
+| Editors        | `nano`, `micro`
+| Multiplexers   | `screen`, `zellij`
+| File browsing  | `yazi` (file manager), `tree`, `fzf`{asterisk} (fuzzy finder, zsh integration)
+| `btop`         | resource monitor
+| Trash          | `trash-cli` (instead of `rm`)
+| Archives       | `unzip`, `bzip2`, `7z`{asterisk}
+| Build tools    | `build-essential`, `perl`
+| Python         | `uv`
+| `direnv`       | per-directory environment
+| GNU `parallel` | run jobs in parallel
+| AppMan         | user-level app manager
+|===
 
-chezmoi only tracks the dotfiles themselves. 
-All installation (packages, Oh My Zsh, the `jumo` theme, chezmoi itself) lives in a standalone `install.sh` bootstrap script.
+{asterisk} installed via AppMan
+
+System packages need root (apt); everything else installs into your home directory.
+
+Files not meant for `$HOME` (`README.adoc`, `CLAUDE.md`, `install.sh`) are excluded via `.chezmoiignore`.
 
 == Install
 
@@ -21,7 +58,7 @@ git clone https://github.com/jujumo/dotfiles.git ~/.local/share/chezmoi
 sh ~/.local/share/chezmoi/install.sh
 ----
 
-This installs the packages and tools listed below, then applies the dotfiles from that clone (including the `jumo` theme). The source repo is the clone's `origin`: to use another repo, clone that one instead.
+This installs the packages and tools listed above, then applies the dotfiles from that clone (including the `jumo` theme). The source repo is the clone's `origin`: to use another repo, clone that one instead.
 
 Installation is best effort: a step that lacks permissions or prerequisites is skipped and the next one runs. Without root or passwordless sudo, the installer asks once whether to use sudo. Two environment variables change this:
 
@@ -40,22 +77,6 @@ SSH_KEYS_URL=https://github.com/jujumo.keys sh ~/.local/share/chezmoi/install.sh
 ----
 
 Any URL `curl` can read works (including a local `file://` path). Only *public* keys are ever handled — no private key material is involved.
-
-== What gets installed
-
-The `install.sh` script sets up:
-
-* base packages: `ca-certificates`, `curl`, `git`, `openssh-client`, `zsh`, `nano`
-* extra packages: `btop`, `screen`, `micro`, `unzip`, `bzip2`, `build-essential`, `perl`
-* *Oh My Zsh* (unattended, without generating its own `.zshrc` — chezmoi owns that), and zsh as the login shell
-* *chezmoi*, into `~/.local/bin`
-* *openssh-server* — only when `SSH_KEYS_URL` is set (see above)
-* *appman*, *zellij*, *yazi*, *GNU parallel* and *direnv*, into `~/.local/bin` (optional)
-* a short list of applications installed via `appman` (currently: `gitui`)
-
-System packages need root (apt); everything else installs into your home directory.
-
-Files not meant for `$HOME` (`README.adoc`, `CLAUDE.md`, `install.sh`) are excluded via `.chezmoiignore`.
 
 == Rust (cargo)
 
