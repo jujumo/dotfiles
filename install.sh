@@ -369,4 +369,34 @@ if [ ! -x "$HOME/.local/bin/fzf" ] && ! has fzf && need curl tar; then
   ) >/dev/null 2>&1 || echo "    fzf: skip"
 fi
 
+### Installing lazygit #################################################################
+echo "==> Installing lazygit (optional)"
+# Fallback for machines where AppMan has no lazygit (e.g. Raspberry Pi): static
+# Go binary from GitHub releases into ~/.local/bin, no root needed. Skipped if
+# already present (AppMan symlink, distro package).
+if [ ! -x "$HOME/.local/bin/lazygit" ] && ! has lazygit && need curl tar; then
+  (
+    case "$ARCH" in
+      x86_64)        LAZYGIT_ARCH="x86_64" ;;
+      aarch64|arm64) LAZYGIT_ARCH="arm64" ;;
+      armv7l|armv6l) LAZYGIT_ARCH="armv6" ;;
+      *)             exit 0 ;;
+    esac
+    [ "$OS" = "Linux" ] || exit 0
+
+    # The asset name embeds the version, so resolve the latest tag first by
+    # following the /releases/latest redirect (no API call, no jq).
+    LAZYGIT_VERSION="$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
+      https://github.com/jesseduffield/lazygit/releases/latest)"
+    LAZYGIT_VERSION="${LAZYGIT_VERSION##*/v}"
+    [ -n "$LAZYGIT_VERSION" ] || exit 1
+
+    mkdir -p "$HOME/.local/bin"
+    curl -fsSL \
+      "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_linux_${LAZYGIT_ARCH}.tar.gz" |
+      tar -xz -C "$HOME/.local/bin" lazygit
+    chmod +x "$HOME/.local/bin/lazygit"
+  ) >/dev/null 2>&1 || echo "    lazygit: skip"
+fi
+
 echo "==> Done. Start a new shell or run: exec zsh"

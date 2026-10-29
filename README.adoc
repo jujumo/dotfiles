@@ -27,7 +27,7 @@ image::screenshot.png[screenshot]
 | Dotfiles       | chezmoi (in `~/.local/bin`), applying this repo
 | SSH            | `openssh-client`; opt-in login: `openssh-server` + keys from `SSH_KEYS_URL` in `authorized_keys` (see <<Authorizing SSH login keys>>)
 | Downloads      | `curl`, `wget`, `ca-certificates`
-| Git            | `git`, `lazygit`{asterisk} (terminal UI)
+| Git            | `git`, `lazygit`{asterisk} (terminal UI; GitHub release when AppMan has no lazygit, e.g. ARM)
 | Editors        | `nano`, `micro`
 | Multiplexers   | `screen`, `zellij`
 | File browsing  | `yazi` (file manager), `tree`, `fzf`{asterisk} (fuzzy finder, zsh integration; GitHub release when AppMan has no fzf, e.g. ARM)
