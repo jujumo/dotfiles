@@ -30,7 +30,7 @@ image::screenshot.png[screenshot]
 | Git            | `git`, `lazygit`{asterisk} (terminal UI)
 | Editors        | `nano`, `micro`
 | Multiplexers   | `screen`, `zellij`
-| File browsing  | `yazi` (file manager), `tree`, `fzf`{asterisk} (fuzzy finder, zsh integration)
+| File browsing  | `yazi` (file manager), `tree`, `fzf`{asterisk} (fuzzy finder, zsh integration; GitHub release when AppMan has no fzf, e.g. ARM)
 | `btop`         | resource monitor
 | Trash          | `trash-cli` (instead of `rm`)
 | Archives       | `unzip`, `bzip2`, `7z`{asterisk}
