@@ -1,9 +1,18 @@
 Host *
     AddKeysToAgent yes
 
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_github
+
+Host adriatique
+	HostName adriatique
+	User jmorat
+
 Host nas-jumo
     HostName nas-jumo
     Port 35123
     User jumo
-    RequestTTY yes
-    RemoteCommand /usr/local/bin/zsh -l
+#    RequestTTY yes
+#    RemoteCommand /usr/local/bin/zsh -l
