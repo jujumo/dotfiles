@@ -134,6 +134,21 @@ if need curl git; then
   else
     "$CHEZMOI" init --apply "$DOTFILES_REPO" || echo "    chezmoi: init failed"
   fi
+
+  # Convenience symlink ~/chezmoi -> source directory. Relative target when
+  # it is the default location so the link survives a moved/mounted $HOME.
+  # Idempotent (-sfn), and never clobbers a real file or directory.
+  if [ -d "$SOURCE_DIR" ]; then
+    case "$SOURCE_DIR" in
+      "$HOME/.local/share/chezmoi") link_target=".local/share/chezmoi" ;;
+      *)                            link_target="$SOURCE_DIR" ;;
+    esac
+    if [ -L "$HOME/chezmoi" ] || [ ! -e "$HOME/chezmoi" ]; then
+      ln -sfn "$link_target" "$HOME/chezmoi"
+    else
+      echo "    ~/chezmoi exists and is not a symlink: left untouched"
+    fi
+  fi
 fi
 
 # Authorize SSH login keys. Append-only and idempotent: each key is added just

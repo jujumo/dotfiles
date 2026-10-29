@@ -98,8 +98,8 @@ chezmoi provides `~/.cargo/config.toml` (from `dot_cargo/config.toml.tmpl`), whi
 
 [source,shell]
 ----
-git -C ~/.local/share/chezmoi pull
-sh ~/.local/share/chezmoi/install.sh
+git -C ~/chezmoi pull        # ~/chezmoi is a symlink to ~/.local/share/chezmoi, created by install.sh
+sh ~/chezmoi/install.sh
 ----
 
 For the dotfiles only, without going through the package step:
