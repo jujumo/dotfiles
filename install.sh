@@ -82,9 +82,9 @@ else
 fi
 
 ### Installing extra packages #################################################################
-echo "==> Installing extra packages (tree, btop, screen, micro, unzip, bzip2, build-essential, perl)"
+echo "==> Installing extra packages (tree, btop, screen, micro, unzip, bzip2, xz-utils, 7zip, build-essential, perl)"
 if [ "$CAN_ROOT" = 1 ] && has apt; then
-  for package in tree btop screen micro unzip bzip2 build-essential perl; do
+  for package in tree btop screen micro unzip bzip2 xz-utils 7zip build-essential perl; do
     $SUDO apt install -y "$package" || echo "    $package: skip"
   done
 else
@@ -226,9 +226,15 @@ else
   APPMAN=""
 fi
 
-echo "==> Installing apps via AppMan (7z, notify-send, lazygit, fzf)"
+echo "==> Installing apps via AppMan (notify-send, lazygit, fzf)"
 if [ -n "$APPMAN" ]; then
-  for app in 7z notify-send lazygit fzf; do
+  # On every start appman probes GitHub (one slow HEAD request each) for its
+  # optional helper tools (7z, column, notify-send, ...) that are missing. We
+  # don't need them; this marker is what appman itself writes when you decline.
+  mkdir -p "$HOME/.local/share/AM"
+  touch "$HOME/.local/share/AM/disable-dependencies-prompt"
+  for app in notify-send lazygit fzf; do
+    echo "    $app"
     # -y must come first: it's only recognized as $1, and makes appman
     # auto-answer its install prompts instead of hanging on stdin.
     "$APPMAN" -y -i "$app" >/dev/null 2>&1 </dev/null || echo "    $app: skip"
