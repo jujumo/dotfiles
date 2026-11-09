@@ -226,14 +226,14 @@ else
   APPMAN=""
 fi
 
-echo "==> Installing apps via AppMan (notify-send, lazygit, fzf)"
+echo "==> Installing apps via AppMan (lazygit, fzf)"
 if [ -n "$APPMAN" ]; then
   # On every start appman probes GitHub (one slow HEAD request each) for its
   # optional helper tools (7z, column, notify-send, ...) that are missing. We
   # don't need them; this marker is what appman itself writes when you decline.
   mkdir -p "$HOME/.local/share/AM"
   touch "$HOME/.local/share/AM/disable-dependencies-prompt"
-  for app in notify-send lazygit fzf; do
+  for app in lazygit fzf; do
     echo "    $app"
     # -y must come first: it's only recognized as $1, and makes appman
     # auto-answer its install prompts instead of hanging on stdin.
