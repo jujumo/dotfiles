@@ -16,10 +16,74 @@ git clone https://github.com/jujumo/dotfiles.git ~/.local/share/chezmoi
 sh ~/.local/share/chezmoi/install.sh
 ----
 
-== What you get
+== Work environment
 
-.How it looks like
-image::screenshot.png[screenshot]
+The old trio — terminator, tmux, bash — is replaced by a faster and friendlier one:
+
+[cols="1,1,4",options="header",frame=none,grid=rows]
+|===
+| Before     | Now                | What it brings
+| terminator | <<WezTerm>>        | GPU rendering, inline images, one Lua file for the whole config
+| tmux       | <<Zellij>>         | shortcuts written on screen, floating and stacked panes, sessions that survive a lost connection
+| bash       | <<Zsh + Oh My Zsh>> | completion you can browse, plugins, a prompt that tells you when something failed
+|===
+
+=== Zsh + Oh My Zsh
+
+==== Completion you can walk through
+
+`Tab` completes what is unambiguous, `Tab` again lists the candidates, and one more `Tab` enters the list: from there `Tab` and the arrow keys move in every direction, `Enter` picks the highlighted entry without running the command — ready to complete the next level.
+
+image::docs/completion.gif[Menu completion: Tab lists the directories, the arrows browse them]
+
+==== Plugins and prompt
+
+image::docs/omz.gif[jumo prompt, sudo plugin and git completion]
+
+* *`jumo` prompt* — time, root of the current path (which disk am I on?), current directory, conda environment when one is active; the frame turns red when the last command failed.
+* *`sudo`* — forgot it? `Esc` `Esc` puts `sudo` in front of the current (or previous) command.
+* *`gitfast`* — completes git sub-commands, branches, remotes.
+* *`fzf`* — `Ctrl+R` fuzzy-searches the history, `**` + `Tab` fuzzy-completes paths.
+* *`common-aliases`* — `la`, `ll`, `l` and friends.
+* *`copypath`, `copybuffer`* — copy the current directory, or the command line being typed (`Ctrl+O`), to the clipboard.
+* *`direnv`* — per-directory environment, loaded on `cd`.
+* *`ssh-agent`* — one agent per host, keys loaded lazily on first use.
+
+The full list is in link:dot_zshrc[`dot_zshrc`]; custom aliases live in link:dot_oh-my-zsh/custom[`dot_oh-my-zsh/custom`].
+
+=== Zellij
+
+image::docs/zellij.gif[zellij: panes, tabs and the on-screen key hints]
+
+* *No shortcut to memorise* — the bottom bar always shows the keys available in the current mode.
+* *Locked by default* — zellij leaves every key to the shell and to the programs running in it. `Ctrl+g` unlocks it, then `p` (pane), `t` (tab), `r` (resize), `s` (scroll/search), `o` (session)... and it locks itself again once the action is done.
+* *`Alt` shortcuts work while locked* — `Alt+arrows` (or `Alt+hjkl`) move the focus across panes and tabs, `Alt+n` opens a pane, `Alt+f` toggles the floating panes.
+* *`zel`* — attach to this machine's session, creating it if needed (the session is named after the host).
+* *`zel_<host>`* — one alias per host of `~/.ssh/config`: ssh there and land in its persistent zellij session (falls back to tmux, then to a plain shell). Close the window or lose the network: the session only detaches.
+
+Configuration: link:dot_config/zellij/config.kdl[`dot_config/zellij/config.kdl`].
+
+=== WezTerm
+
+image::screenshot.png[WezTerm running zellij and the jumo prompt]
+
+* *GPU-accelerated* rendering (WebGPU front end).
+* *Inline images* — Sixel, iTerm2 and kitty graphics protocols, so image previews work in `yazi` and the like.
+* *Catppuccin Mocha* palette and a Nerd Font (`RobotoMono Nerd Font Mono`, to be installed separately).
+* *Linux-style selection* — selecting with the mouse fills the PRIMARY selection, middle-click pastes.
+* The whole configuration is one Lua file: link:dot_config/wezterm/wezterm.lua[`dot_config/wezterm/wezterm.lua`].
+
+==== Images in the terminal
+
+`chafa` shows a picture right where you are, no viewer window, also over ssh:
+
+image::docs/chafa.gif[chafa rendering a photo in the terminal]
+
+The demo is recorded in a headless terminal, so the picture is drawn with coloured character cells. In a terminal that speaks a graphics protocol, such as WezTerm, `chafa` uses it and draws real pixels.
+
+WezTerm itself is not installed by `install.sh` (a desktop application): install it from https://wezterm.org/install/linux.html[wezterm.org]; chezmoi only provides its configuration.
+
+== What you get
 
 [cols="1,4",frame=none,grid=none]
 |===
@@ -32,6 +96,7 @@ image::screenshot.png[screenshot]
 | Multiplexers   | `screen`, `zellij`
 | File browsing  | `yazi` (file manager), `tree`, `fzf`{asterisk} (fuzzy finder, zsh integration; GitHub release when AppMan has no fzf, e.g. ARM)
 | `btop`         | resource monitor
+| `chafa`        | images in the terminal
 | Trash          | `trash-cli` (instead of `rm`)
 | Archives       | `unzip`, `bzip2`, `7z` (`7zip` package), `xz`
 | Build tools    | `build-essential`, `perl`
@@ -46,6 +111,10 @@ image::screenshot.png[screenshot]
 System packages need root (apt); everything else installs into your home directory.
 
 Files not meant for `$HOME` (`README.adoc`, `CLAUDE.md`, `install.sh`) are excluded via `.chezmoiignore`.
+
+=== Re-recording the demos
+
+The GIFs in `docs/` are scripted with https://github.com/charmbracelet/vhs[VHS]: each one replays a `.tape` file (keystrokes and pauses) in a container where `install.sh` has run; the strip at the bottom, showing the keys being pressed, is added afterwards from the same tape. Tapes and the `make demo` target live in the companion test project (`chezmoi_docker_test`).
 
 == Install
 

@@ -82,9 +82,9 @@ else
 fi
 
 ### Installing extra packages #################################################################
-echo "==> Installing extra packages (tree, btop, screen, micro, unzip, bzip2, xz-utils, 7zip, build-essential, perl)"
+echo "==> Installing extra packages (tree, btop, screen, micro, chafa, unzip, bzip2, xz-utils, 7zip, build-essential, perl)"
 if [ "$CAN_ROOT" = 1 ] && has apt; then
-  for package in tree btop screen micro unzip bzip2 xz-utils 7zip build-essential perl; do
+  for package in tree btop screen micro chafa unzip bzip2 xz-utils 7zip build-essential perl; do
     $SUDO apt install -y "$package" || echo "    $package: skip"
   done
 else
