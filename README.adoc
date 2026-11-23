@@ -32,7 +32,7 @@ The old trio — terminator, tmux, bash — is replaced by a faster and friendli
 
 ==== Completion you can walk through
 
-`Tab` completes what is unambiguous, `Tab` again lists the candidates, and one more `Tab` enters the list: from there `Tab` and the arrow keys move in every direction, `Enter` picks the highlighted entry without running the command — ready to complete the next level.
+`Tab` completes what is unambiguous, whatever the case (`cd Pro` finds `projects/`), `Tab` again lists the candidates, and one more `Tab` enters the list: from there `Tab` and the arrow keys move in every direction, `Enter` picks the highlighted entry without running the command — ready to complete the next level.
 
 image::docs/completion.gif[Menu completion: Tab lists the directories, the arrows browse them]
 
